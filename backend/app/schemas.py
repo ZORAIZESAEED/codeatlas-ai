@@ -18,12 +18,18 @@ class ProjectSummary(BaseModel):
     total_bytes: int
     skipped_count: int
     languages: list[str] = []
+    analysis_status: str = "pending"
+    analyzed_at: datetime | None = None
+    symbol_count: int = 0
+    chunk_count: int = 0
 
-    @field_validator("created_at")
+    @field_validator("created_at", "analyzed_at")
     @classmethod
-    def assume_utc(cls, value: datetime) -> datetime:
+    def assume_utc(cls, value: datetime | None) -> datetime | None:
         # SQLite drops timezone info; stored values are always UTC.
-        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        if value is None or value.tzinfo:
+            return value
+        return value.replace(tzinfo=timezone.utc)
 
 
 class ProjectFileOut(BaseModel):
@@ -35,6 +41,8 @@ class ProjectFileOut(BaseModel):
     size_bytes: int
     line_count: int
     content_hash: str
+    parser: str | None = None
+    parse_error: str | None = None
 
 
 class FileListResponse(BaseModel):
@@ -64,12 +72,71 @@ class TopLevelEntry(BaseModel):
     file_count: int
 
 
+class FileParseIssue(BaseModel):
+    path: str
+    parser: str | None
+    parse_error: str
+
+
+class AnalysisOverview(BaseModel):
+    status: str
+    analyzed_at: datetime | None
+    symbol_count: int
+    chunk_count: int
+    symbols_by_kind: dict[str, int]
+    files_by_parser: dict[str, int]
+    issue_count: int
+    issues: list[FileParseIssue]
+
+
 class ProjectOverview(BaseModel):
     project: ProjectSummary
     languages: list[LanguageStat]
     directory_count: int
     top_level: list[TopLevelEntry]
     largest_files: list[ProjectFileOut]
+    analysis: AnalysisOverview
+
+
+class SymbolOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    path: str
+    name: str
+    qualified_name: str
+    kind: str
+    parent: str | None
+    start_line: int
+    end_line: int
+    signature: str | None
+    docstring: str | None
+
+
+class SymbolListResponse(BaseModel):
+    project_id: str
+    total: int
+    symbols: list[SymbolOut]
+
+
+class ChunkOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    path: str
+    chunk_index: int
+    start_line: int
+    end_line: int
+    kind: str
+    symbol: str | None
+    language: str
+    char_count: int
+    content_hash: str
+    content: str | None = None
+
+
+class ChunkListResponse(BaseModel):
+    project_id: str
+    total: int
+    chunks: list[ChunkOut]
 
 
 class GitHubImportRequest(BaseModel):

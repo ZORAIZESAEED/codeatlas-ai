@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { api, type FileContent, type ProjectFile } from "@/lib/api";
-import CodeViewer from "./CodeViewer";
+import CodeViewer, { type LineRange } from "./CodeViewer";
+import OutlinePanel from "./OutlinePanel";
 
 type TreeNode = { name: string; path: string; children: TreeNode[]; file?: ProjectFile };
 
@@ -53,6 +54,7 @@ export default function FileExplorer({
   const [content, setContent] = useState<FileContent | null>(null);
   const [contentError, setContentError] = useState<string | null>(null);
   const [loadingContent, setLoadingContent] = useState(false);
+  const [range, setRange] = useState<LineRange | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -68,6 +70,7 @@ export default function FileExplorer({
 
   useEffect(() => {
     if (!selected) return;
+    setRange(null);
     const controller = new AbortController();
     setLoadingContent(true);
     setContentError(null);
@@ -92,6 +95,7 @@ export default function FileExplorer({
   }, [files, filter]);
   const tree = useMemo(() => buildTree(visibleFiles), [visibleFiles]);
   const filtering = filter.trim().length > 0;
+  const selectedFile = files?.find((f) => f.path === selected) ?? null;
 
   const toggle = (path: string) =>
     setExpanded((prev) => {
@@ -150,11 +154,20 @@ export default function FileExplorer({
         {!selected ? (
           <div className="empty">Select a file to view its source.</div>
         ) : content && content.path === selected ? (
-          <CodeViewer file={content} loading={loadingContent} />
+          <CodeViewer file={content} loading={loadingContent} range={range} />
         ) : loadingContent ? (
           <div className="empty">Loading {selected}…</div>
         ) : null}
       </div>
+      {selectedFile ? (
+        <OutlinePanel
+          key={selectedFile.path}
+          projectId={projectId}
+          file={selectedFile}
+          range={range}
+          onSelectRange={setRange}
+        />
+      ) : null}
     </div>
   );
 }

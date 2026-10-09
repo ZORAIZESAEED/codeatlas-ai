@@ -1,6 +1,6 @@
 import tempfile
 from collections import defaultdict
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from pathlib import PurePosixPath
 
 import httpx
@@ -12,18 +12,26 @@ from sqlalchemy.orm import Session
 from starlette.datastructures import UploadFile
 
 from app.core.config import Settings
-from app.db.models import Project, ProjectFile
+from app.db.models import CodeChunk, CodeSymbol, Project, ProjectFile
 from app.db.session import get_db
 from app.schemas import (
+    AnalysisOverview,
+    ChunkListResponse,
+    ChunkOut,
     FileContentResponse,
     FileListResponse,
+    FileParseIssue,
     GitHubImportRequest,
     LanguageStat,
     ProjectFileOut,
     ProjectOverview,
     ProjectSummary,
+    SymbolListResponse,
+    SymbolOut,
     TopLevelEntry,
 )
+from app.services.analysis import delete_analysis, run_analysis
+from app.services.chunking import split_lines
 from app.services.github import download_repository, parse_github_url
 from app.services.ingestion import (
     IngestionError,
@@ -71,6 +79,14 @@ def _summary(db: Session, project: Project) -> ProjectSummary:
     return summary
 
 
+def _analyzed_summary(db: Session, project: Project | None) -> ProjectSummary:
+    # Analysis failures never fail an import: the project stays importable and browsable with
+    # analysis_status="failed". Only a project deleted mid-analysis has nothing to return.
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project was deleted during analysis.")
+    return _summary(db, project)
+
+
 def _get_project(db: Session, project_id: str) -> Project:
     project = db.get(Project, project_id)
     if project is None:
@@ -107,6 +123,7 @@ def delete_project(
     settings: Settings = Depends(get_settings_dep),
 ) -> Response:
     project = _get_project(db, project_id)
+    delete_analysis(db, project.id)
     db.execute(delete(ProjectFile).where(ProjectFile.project_id == project.id))
     db.delete(project)
     db.commit()
@@ -129,7 +146,7 @@ def import_github(
             db, settings, archive, name=info.full_name, source_type="github",
             source_url=info.html_url,
         )
-    return _summary(db, project)
+    return _analyzed_summary(db, run_analysis(db, settings, project))
 
 
 @router.post(
@@ -188,7 +205,8 @@ async def import_zip(
         )
     finally:
         await form.close()
-    return _summary(db, project)
+    analyzed = await run_in_threadpool(run_analysis, db, settings, project)
+    return _analyzed_summary(db, analyzed)
 
 
 @router.get("/{project_id}/files", response_model=FileListResponse)
@@ -257,7 +275,107 @@ def get_overview(project_id: str, db: Session = Depends(get_db)) -> ProjectOverv
         directory_count=len(directories),
         top_level=sorted(top_level.values(), key=lambda e: (e.type != "directory", e.name.lower())),
         largest_files=[ProjectFileOut.model_validate(f) for f in largest],
+        analysis=_analysis_overview(db, project, files),
     )
+
+
+MAX_ISSUES = 50
+
+
+def _analysis_overview(
+    db: Session, project: Project, files: Sequence[ProjectFile]
+) -> AnalysisOverview:
+    kinds = db.execute(
+        select(CodeSymbol.kind, func.count())
+        .where(CodeSymbol.project_id == project.id)
+        .group_by(CodeSymbol.kind)
+    ).all()
+    parsers: dict[str, int] = defaultdict(int)
+    issues = []
+    for f in files:
+        if f.parser:
+            parsers[f.parser] += 1
+        if f.parse_error:
+            issues.append(FileParseIssue(path=f.path, parser=f.parser, parse_error=f.parse_error))
+    issues.sort(key=lambda i: i.path)
+    return AnalysisOverview(
+        status=project.analysis_status,
+        analyzed_at=ProjectSummary.assume_utc(project.analyzed_at),
+        symbol_count=project.symbol_count,
+        chunk_count=project.chunk_count,
+        symbols_by_kind={kind: count for kind, count in sorted(kinds)},
+        files_by_parser=dict(sorted(parsers.items())),
+        issue_count=len(issues),
+        issues=issues[:MAX_ISSUES],
+    )
+
+
+@router.post("/{project_id}/analyze", response_model=ProjectSummary)
+def analyze(
+    project_id: str,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings_dep),
+) -> ProjectSummary:
+    """Parse all project files and rebuild symbols and chunks (idempotent)."""
+    return _analyzed_summary(db, run_analysis(db, settings, _get_project(db, project_id)))
+
+
+@router.get("/{project_id}/symbols", response_model=SymbolListResponse)
+def list_symbols(
+    project_id: str,
+    path: str | None = Query(default=None, max_length=1024),
+    kind: str | None = Query(default=None, max_length=20),
+    q: str | None = Query(default=None, max_length=200, description="Name contains (any case)"),
+    limit: int = Query(default=200, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+) -> SymbolListResponse:
+    project = _get_project(db, project_id)
+    query = select(CodeSymbol).where(CodeSymbol.project_id == project.id)
+    if path:
+        query = query.where(CodeSymbol.path == path)
+    if kind:
+        query = query.where(CodeSymbol.kind == kind)
+    if q:
+        query = query.where(func.lower(CodeSymbol.qualified_name).contains(q.lower()))
+    total = db.scalar(select(func.count()).select_from(query.subquery())) or 0
+    rows = db.scalars(
+        query.order_by(CodeSymbol.path, CodeSymbol.start_line, CodeSymbol.id)
+        .limit(limit)
+        .offset(offset)
+    ).all()
+    return SymbolListResponse(
+        project_id=project.id, total=total, symbols=[SymbolOut.model_validate(r) for r in rows]
+    )
+
+
+@router.get("/{project_id}/chunks", response_model=ChunkListResponse)
+def list_chunks(
+    project_id: str,
+    path: str | None = Query(default=None, max_length=1024),
+    include_content: bool = Query(default=False, description="Requires `path`"),
+    limit: int = Query(default=200, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings_dep),
+) -> ChunkListResponse:
+    project = _get_project(db, project_id)
+    if include_content and not path:
+        raise HTTPException(status_code=422, detail="include_content requires a file path.")
+    query = select(CodeChunk).where(CodeChunk.project_id == project.id)
+    if path:
+        query = query.where(CodeChunk.path == path)
+    total = db.scalar(select(func.count()).select_from(query.subquery())) or 0
+    rows = db.scalars(
+        query.order_by(CodeChunk.path, CodeChunk.chunk_index).limit(limit).offset(offset)
+    ).all()
+    chunks = [ChunkOut.model_validate(r) for r in rows]
+    if include_content and rows:
+        # Chunks only exist for manifest files, so the path is already validated.
+        lines = split_lines(read_project_file(settings, project.id, rows[0].path))
+        for chunk in chunks:
+            chunk.content = "".join(lines[chunk.start_line - 1 : chunk.end_line])
+    return ChunkListResponse(project_id=project.id, total=total, chunks=chunks)
 
 
 def ingestion_error_handler(_: Request, exc: IngestionError) -> JSONResponse:

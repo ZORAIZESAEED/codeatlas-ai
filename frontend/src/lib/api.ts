@@ -12,6 +12,10 @@ export type Project = {
   total_bytes: number;
   skipped_count: number;
   languages: string[];
+  analysis_status: "pending" | "ready" | "failed" | string;
+  analyzed_at: string | null;
+  symbol_count: number;
+  chunk_count: number;
 };
 
 export type ProjectFile = {
@@ -21,6 +25,44 @@ export type ProjectFile = {
   size_bytes: number;
   line_count: number;
   content_hash: string;
+  parser: string | null;
+  parse_error: string | null;
+};
+
+export type CodeSymbol = {
+  path: string;
+  name: string;
+  qualified_name: string;
+  kind: string;
+  parent: string | null;
+  start_line: number;
+  end_line: number;
+  signature: string | null;
+  docstring: string | null;
+};
+
+export type CodeChunk = {
+  path: string;
+  chunk_index: number;
+  start_line: number;
+  end_line: number;
+  kind: string;
+  symbol: string | null;
+  language: string;
+  char_count: number;
+  content_hash: string;
+  content: string | null;
+};
+
+export type AnalysisOverview = {
+  status: string;
+  analyzed_at: string | null;
+  symbol_count: number;
+  chunk_count: number;
+  symbols_by_kind: Record<string, number>;
+  files_by_parser: Record<string, number>;
+  issue_count: number;
+  issues: { path: string; parser: string | null; parse_error: string }[];
 };
 
 export type FileContent = {
@@ -40,6 +82,7 @@ export type Overview = {
   directory_count: number;
   top_level: { name: string; type: "file" | "directory"; file_count: number }[];
   largest_files: ProjectFile[];
+  analysis: AnalysisOverview;
 };
 
 export class ApiError extends Error {}
@@ -77,6 +120,17 @@ export const api = {
   fileContent: (id: string, path: string, signal?: AbortSignal) =>
     request<FileContent>(
       `${projectPath(id)}/files/content?path=${encodeURIComponent(path)}`,
+      { signal },
+    ),
+  analyze: (id: string) => request<Project>(`${projectPath(id)}/analyze`, { method: "POST" }),
+  symbols: (id: string, path: string, signal?: AbortSignal) =>
+    request<{ project_id: string; total: number; symbols: CodeSymbol[] }>(
+      `${projectPath(id)}/symbols?limit=1000&path=${encodeURIComponent(path)}`,
+      { signal },
+    ),
+  chunks: (id: string, path: string, signal?: AbortSignal) =>
+    request<{ project_id: string; total: number; chunks: CodeChunk[] }>(
+      `${projectPath(id)}/chunks?limit=1000&path=${encodeURIComponent(path)}`,
       { signal },
     ),
   deleteProject: (id: string) => request<void>(projectPath(id), { method: "DELETE" }),

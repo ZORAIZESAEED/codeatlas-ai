@@ -20,6 +20,14 @@ class Settings(BaseSettings):
     max_indexed_file_bytes: int = 1 * MB
     github_timeout_seconds: float = 30.0
 
+    # Code analysis chunk limits. A single line longer than the char limit is never split.
+    chunk_max_lines: int = 100
+    chunk_max_chars: int = 4000
+    # Structural parsing limits; larger files (or files past the per-project budget) are
+    # still chunked, by lines.
+    parse_max_file_bytes: int = 512 * 1024
+    parse_max_total_bytes: int = 50 * MB
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

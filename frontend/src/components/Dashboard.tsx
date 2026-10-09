@@ -42,7 +42,10 @@ export default function Dashboard() {
     setFlash({
       kind: "success",
       text: `Imported ${project.name}: ${project.file_count} files indexed` +
-        (project.skipped_count ? `, ${project.skipped_count} skipped.` : "."),
+        (project.skipped_count ? `, ${project.skipped_count} skipped` : "") +
+        (project.analysis_status === "ready"
+          ? `; ${project.symbol_count} symbols, ${project.chunk_count} chunks.`
+          : "; code analysis did not complete — you can retry from the overview."),
     });
     setSelectedId(project.id);
     loadProjects();
@@ -107,7 +110,12 @@ export default function Dashboard() {
             </div>
           ) : null}
           {selected ? (
-            <ProjectWorkspace key={selected.id} project={selected} onDeleted={handleDeleted} />
+            <ProjectWorkspace
+              key={selected.id}
+              project={selected}
+              onDeleted={handleDeleted}
+              onChanged={() => loadProjects()}
+            />
           ) : (
             <ImportPanel onImported={handleImported} />
           )}
