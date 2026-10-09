@@ -6,11 +6,12 @@
   - `ImportPanel` — GitHub URL form and ZIP upload (drag & drop) with loading/error states.
   - `ProjectWorkspace` — project header, delete action, Overview/Files tabs, statistics.
   - `FileExplorer` — collapsible tree built from the manifest, filter box, file loading.
-  - `CodeViewer` — line-numbered, syntax-highlighted source (`highlight.js` core with 10 registered grammars, `src/lib/highlight.ts`).
+  - `CodeViewer` — line-numbered, syntax-highlighted source (`highlight.js` core; `src/lib/highlight.ts` maps backend language names to grammars, unmapped types render as plain text).
   - `src/lib/api.ts` — typed fetch client for the backend; surfaces backend `detail` messages.
 - **API:** FastAPI (`app/main.py` factory). Routers: `app/api/health.py` (`/health`, `/ready`) and `app/api/projects.py` (`/api/projects/...`). Pydantic schemas live in `app/schemas.py`. `IngestionError` is mapped to JSON `{"detail"}` responses by an exception handler.
 - **Services:**
-  - `app/services/ingestion.py` — safe ZIP extraction, filtering, language detection, manifest generation, transactional import with cleanup, sandboxed file reads, workspace deletion.
+  - `app/services/languages.py` — `LanguageRegistry` of `LanguageSpec`s (exact file names → file-name globs → extensions, case-insensitive). `DEFAULT_REGISTRY` is the single source of truth for which file types are indexed.
+  - `app/services/ingestion.py` — safe ZIP extraction, exclusion rules (directories, generated files, credentials), manifest generation, transactional import with cleanup, sandboxed file reads, workspace deletion. `extract_archive` accepts an optional registry.
   - `app/services/github.py` — GitHub URL validation, repository metadata lookup and size-limited archive streaming via `httpx`.
 - **Database:** SQLAlchemy 2 + SQLite. A per-request `Session` comes from `app.db.session.get_db` (session factory created in the app lifespan).
   - `projects` — id, name, source_type (`github`/`zip`), source_url, status, created_at, file_count, total_lines, total_bytes, skipped_count.
@@ -23,7 +24,7 @@
    **ZIP:** check `Content-Length` before parsing multipart, accept one `.zip` file ≤ `MAX_UPLOAD_BYTES`.
 2. Create `<workspace>/<new uuid>/`.
 3. Validate every member name (no absolute paths, drive letters, `..`, NUL); reject encrypted archives and archives with too many entries.
-4. Strip a single shared top-level folder; skip symlinks, excluded directories, unsupported extensions, sensitive files, Windows reserved names and oversized files.
+4. Strip a single shared top-level folder; skip symlinks, excluded directories, file types not in the language registry, sensitive files, generated files (lockfiles, minified bundles), Windows reserved names and oversized files.
 5. Read each member with a hard byte cap (header sizes are not trusted), enforce the total extracted size, skip binary/non-UTF-8 content, write with exclusive-create (`xb`) after a resolved-path containment check.
 6. Insert the project and manifest rows in one transaction. On any error the transaction is rolled back and the workspace folder is removed.
 

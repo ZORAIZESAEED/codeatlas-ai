@@ -53,7 +53,7 @@ def test_malicious_zip_rejected_and_cleaned_up(api, settings):
 
 
 def test_zip_without_supported_files_rejected(api, settings):
-    response = upload(api, make_zip({"image.png": b"\x89PNG\x00", "main.go": "package x\n"}))
+    response = upload(api, make_zip({"image.png": b"\x89PNG\x00", "tool.exe": "MZ"}))
     assert response.status_code == 422
     assert workspace_entries(settings) == []
 

@@ -79,8 +79,10 @@ export default function ImportPanel({ onImported }: { onImported: (project: Proj
         <span className="eyebrow">Repository ingestion</span>
         <h1>Import a repository</h1>
         <p className="muted">
-          Source files are stored and scanned as plain text — nothing is executed. Supported:
-          Python, JavaScript, TypeScript, JSX/TSX, HTML, CSS, JSON, YAML, Markdown, SQL, TOML.
+          Source files are stored and scanned as plain text — nothing is executed. Common source,
+          configuration and documentation files are indexed (Python, JS/TS, Go, Rust, Java, C/C++,
+          Dockerfiles, Makefiles, YAML, Markdown, text and more). Dependencies, build output,
+          lockfiles, binaries and credential files are skipped.
         </p>
       </div>
 

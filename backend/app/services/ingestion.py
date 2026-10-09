@@ -8,7 +8,8 @@ import shutil
 import stat
 import zipfile
 from dataclasses import dataclass, field
-from pathlib import Path, PurePosixPath
+from fnmatch import fnmatchcase
+from pathlib import Path
 from typing import BinaryIO
 from uuid import UUID, uuid4
 
@@ -16,6 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import Settings
 from app.db.models import Project, ProjectFile
+from app.services.languages import DEFAULT_REGISTRY, LanguageRegistry
 
 
 class IngestionError(Exception):
@@ -25,38 +27,32 @@ class IngestionError(Exception):
         self.status_code = status_code
 
 
-LANGUAGES_BY_EXTENSION = {
-    ".py": "Python",
-    ".js": "JavaScript",
-    ".mjs": "JavaScript",
-    ".cjs": "JavaScript",
-    ".ts": "TypeScript",
-    ".mts": "TypeScript",
-    ".cts": "TypeScript",
-    ".jsx": "JSX",
-    ".tsx": "TSX",
-    ".html": "HTML",
-    ".htm": "HTML",
-    ".css": "CSS",
-    ".json": "JSON",
-    ".yaml": "YAML",
-    ".yml": "YAML",
-    ".md": "Markdown",
-    ".markdown": "Markdown",
-    ".sql": "SQL",
-    ".toml": "TOML",
-}
-
+# Directories that hold VCS data, dependencies, virtualenvs, caches or build output.
 EXCLUDED_DIRS = {
-    ".git", "node_modules", ".venv", "venv", "__pycache__", "dist", "build", ".next",
-    ".mypy_cache", ".pytest_cache", ".ruff_cache", ".tox",
+    ".git", ".hg", ".svn",
+    "node_modules", "bower_components", "vendor", ".venv", "venv", "site-packages", ".eggs",
+    "__pycache__", ".mypy_cache", ".pytest_cache", ".ruff_cache", ".tox", ".cache",
+    "dist", "build", ".next", "out", "target", "coverage", ".gradle", ".terraform", ".idea",
 }
+EXCLUDED_DIR_PATTERNS = ("*.egg-info",)
+
+# Generated files that add noise without adding understanding.
+GENERATED_FILE_NAMES = {
+    "package-lock.json", "npm-shrinkwrap.json", "pnpm-lock.yaml", "yarn.lock", "poetry.lock",
+    "cargo.lock", "composer.lock", "gemfile.lock", "pipfile.lock", "uv.lock",
+}
+GENERATED_FILE_PATTERNS = ("*.min.js", "*.min.css", "*.map")
 
 SENSITIVE_NAMES = {
-    "credentials.json", "secrets.json", "secrets.yaml", "secrets.yml", "secrets.toml",
-    "client_secret.json", ".npmrc", ".pypirc", ".netrc", ".htpasswd",
+    "client_secret.json", ".npmrc", ".pypirc", ".netrc", ".htpasswd", ".pgpass",
+    ".git-credentials", "id_rsa", "id_dsa", "id_ecdsa", "id_ed25519",
 }
-SENSITIVE_PATTERNS = (re.compile(r"^\.env(\..*)?$"), re.compile(r"^service[-_]?account.*\.json$"))
+SENSITIVE_PATTERNS = (
+    re.compile(r"^\.env(\..*)?$"),
+    re.compile(r"^(secrets?|credentials?)(\..*)?$"),
+    re.compile(r"^service[-_]?account.*\.json$"),
+    re.compile(r".*\.(pem|key|p12|pfx|jks|keystore)$"),
+)
 
 WINDOWS_RESERVED = {"CON", "PRN", "AUX", "NUL"} | {
     f"{prefix}{i}" for prefix in ("COM", "LPT") for i in range(10)
@@ -80,12 +76,24 @@ class ScanResult:
 
 
 def detect_language(filename: str) -> str | None:
-    return LANGUAGES_BY_EXTENSION.get(PurePosixPath(filename).suffix.lower())
+    return DEFAULT_REGISTRY.detect(filename)
 
 
 def is_sensitive(filename: str) -> bool:
     lowered = filename.lower()
     return lowered in SENSITIVE_NAMES or any(p.match(lowered) for p in SENSITIVE_PATTERNS)
+
+
+def is_excluded_dir(name: str) -> bool:
+    lowered = name.lower()
+    return lowered in EXCLUDED_DIRS or any(fnmatchcase(lowered, p) for p in EXCLUDED_DIR_PATTERNS)
+
+
+def is_generated(filename: str) -> bool:
+    lowered = filename.lower()
+    return lowered in GENERATED_FILE_NAMES or any(
+        fnmatchcase(lowered, p) for p in GENERATED_FILE_PATTERNS
+    )
 
 
 def safe_parts(raw_name: str) -> list[str]:
@@ -113,8 +121,13 @@ def count_lines(text: str) -> int:
     return text.count("\n") + (0 if text.endswith("\n") else 1)
 
 
-def extract_archive(source: str | Path | BinaryIO, dest: Path, settings: Settings) -> ScanResult:
-    """Extract only supported, non-sensitive text files from a ZIP into ``dest``."""
+def extract_archive(
+    source: str | Path | BinaryIO,
+    dest: Path,
+    settings: Settings,
+    languages: LanguageRegistry = DEFAULT_REGISTRY,
+) -> ScanResult:
+    """Extract only recognised, non-sensitive text files from a ZIP into ``dest``."""
     dest_root = dest.resolve()
     try:
         archive = zipfile.ZipFile(source)
@@ -144,12 +157,13 @@ def extract_archive(source: str | Path | BinaryIO, dest: Path, settings: Setting
             rel_parts = parts[strip:]
             filename = rel_parts[-1]
             rel_path = "/".join(rel_parts)
-            language = detect_language(filename)
+            language = languages.detect(filename)
             if (
                 _is_symlink(info)
-                or any(p in EXCLUDED_DIRS for p in rel_parts[:-1])
+                or any(is_excluded_dir(p) for p in rel_parts[:-1])
                 or language is None
                 or is_sensitive(filename)
+                or is_generated(filename)
                 or info.file_size > settings.max_indexed_file_bytes
                 or len(rel_path) > MAX_PATH_LENGTH
                 or _has_reserved_name(rel_parts)

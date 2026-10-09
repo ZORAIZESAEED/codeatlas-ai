@@ -52,6 +52,9 @@ npm run dev
 - Database readiness: http://localhost:8000/ready
 - Swagger documentation: http://localhost:8000/docs
 
+## Version control
+The project is a Git repository (branch `main`). Generated data (`backend/data/`, SQLite files, workspaces), virtualenvs, `node_modules`, `.next`, caches and `.env` are ignored.
+
 ## API
 | Method | Path | Description |
 | --- | --- | --- |
@@ -67,8 +70,10 @@ npm run dev
 Errors are returned as `{"detail": "..."}` with a meaningful status (400 invalid input/unsafe archive, 404 missing, 411/413 size, 422 no supported files, 429 GitHub rate limit, 502/504 GitHub network failure).
 
 ## Ingestion rules
-- **Indexed languages:** Python, JavaScript, TypeScript, JSX, TSX, HTML, CSS, JSON, YAML, Markdown, SQL, TOML (by file extension). Other files are skipped.
-- **Excluded:** `.git`, `node_modules`, `.venv`, `venv`, `__pycache__`, `dist`, `build`, `.next`, tool caches; binary (NUL bytes / non-UTF-8) files; files over 1 MB; symlinks; credential files (`.env*`, `credentials.json`, `secrets.*`, `.npmrc`, `.pypirc`, `.netrc`, service-account JSON, …).
+- **Indexed file types** are defined in one registry, [`backend/app/services/languages.py`](backend/app/services/languages.py), and matched by exact file name, file-name pattern or extension. Defaults: Python, JavaScript, TypeScript, JSX, TSX, HTML, CSS/SCSS/Less, Shell, PowerShell, Ruby, PHP, Go, Rust, Java, Kotlin, C, C++, C#, Swift, JSON, YAML, TOML, XML, INI/cfg/conf, SQL, Dockerfile (`Dockerfile`, `Dockerfile.*`, `*.dockerfile`, `Containerfile`), Makefile, ignore files (`.gitignore`, `.dockerignore`, …), Markdown, and text (`.txt`, `.rst`, `LICENSE`, `README`, `CHANGELOG`, …). Unrecognised files are skipped.
+- **Adding a file type:** append a `LanguageSpec(name, extensions, filenames, patterns)` to `DEFAULT_LANGUAGES`. For syntax highlighting, also map the name to a highlight.js grammar in `frontend/src/lib/highlight.ts`; unmapped types are shown as plain text. Existing projects must be re-imported to pick up new types.
+- **Excluded directories:** VCS (`.git`, `.hg`, `.svn`), dependencies (`node_modules`, `bower_components`, `vendor`, `site-packages`, `.venv`, `venv`, `*.egg-info`), caches (`__pycache__`, `.mypy_cache`, `.pytest_cache`, `.ruff_cache`, `.tox`, `.cache`, `.gradle`, `.terraform`, `.idea`), build output (`dist`, `build`, `.next`, `out`, `target`, `coverage`).
+- **Excluded files:** lockfiles (`package-lock.json`, `pnpm-lock.yaml`, `poetry.lock`, `Cargo.lock`, …), minified bundles and source maps (`*.min.js`, `*.min.css`, `*.map`), binary (NUL bytes / non-UTF-8) files, files over 1 MB, symlinks, and credential files (`.env*` including `.env.example`, `secret(s).*`, `credential(s).*`, `.npmrc`, `.pypirc`, `.netrc`, `.pgpass`, `.git-credentials`, SSH keys, `*.pem`/`*.key`/`*.p12`/`*.pfx`/keystores, service-account JSON, …).
 - **Archives are rejected** when they contain absolute paths or `..` traversal, are encrypted or malformed, exceed the entry count or total extracted size, or (uploads) exceed 20 MB.
 - Imported code is **never executed**; no hooks, install scripts or dependencies are run.
 - Files are stored under `backend/data/workspaces/<project_id>/`. Limits are configurable — see `.env.example`.
@@ -98,7 +103,8 @@ Copy `.env.example` into `backend/.env` if changing defaults. The web app uses `
 
 ## Known limitations
 - Public GitHub repositories only, default branch only, unauthenticated (60 GitHub API requests/hour per IP). Repository archives over 50 MB are rejected.
-- Only the indexed languages above are stored and browsable; e.g. `Dockerfile`, `.go` and `.txt` files are skipped.
+- Only file types in the language registry are stored and browsable (e.g. `.vue`, `.svelte`, `.lua` are not registered yet).
+- Exclusions are global defaults. `vendor`, `target` and `out` are always skipped, even when a repository keeps hand-written source there. Repository-specific exclusion settings may be added later.
 - Imports run synchronously within the request; very large repositories may take a while.
 - No authentication: every user of the API sees every project.
 

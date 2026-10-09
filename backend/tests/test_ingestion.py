@@ -12,6 +12,7 @@ from app.services.ingestion import (
     extract_archive,
     is_sensitive,
 )
+from app.services.languages import DEFAULT_LANGUAGES, LanguageRegistry, LanguageSpec
 from tests.helpers import SAMPLE_REPO, make_zip
 
 
@@ -92,10 +93,58 @@ def test_language_and_sensitive_detection():
     assert detect_language("a.tsx") == "TSX"
     assert detect_language("A.PY") == "Python"
     assert detect_language("pyproject.toml") == "TOML"
-    assert detect_language("main.go") is None
-    assert detect_language("Makefile") is None
-    assert is_sensitive(".env") and is_sensitive(".env.local") and is_sensitive("credentials.json")
-    assert not is_sensitive("package.json")
+    assert detect_language("app/main.go") == "Go"
+    assert detect_language("Makefile") == "Makefile"
+    assert detect_language("Dockerfile") == "Dockerfile"
+    assert detect_language("dockerfile.dev") == "Dockerfile"
+    assert detect_language("api.Dockerfile") == "Dockerfile"
+    assert detect_language("requirements.txt") == "Text"
+    assert detect_language("LICENSE") == "Text"
+    assert detect_language(".gitignore") == "Ignore List"
+    assert detect_language("logo.png") is None
+    assert detect_language("tool.exe") is None
+    for name in (".env", ".env.local", "credentials.json", "secrets.ini", "server.pem", "id_rsa"):
+        assert is_sensitive(name), name
+    assert not is_sensitive("package.json") and not is_sensitive("secret_santa.py")
+
+
+def test_registry_is_extensible():
+    registry = LanguageRegistry(DEFAULT_LANGUAGES)
+    assert registry.detect("App.vue") is None
+    registry.register(LanguageSpec("Vue", (".vue",)))
+    registry.register(LanguageSpec("Bazel", filenames=("BUILD.bazel",), patterns=("*.bzl",)))
+    assert registry.detect("src/App.vue") == "Vue"
+    assert registry.detect("BUILD.bazel") == "Bazel"
+    assert registry.detect("defs.bzl") == "Bazel"
+    assert "Vue" in registry.names
+    with pytest.raises(ValueError):
+        registry.register(LanguageSpec("Bad", ("vue",)))
+
+
+def test_extract_uses_custom_registry(tmp_path, limits):
+    registry = LanguageRegistry([LanguageSpec("Vue", (".vue",))])
+    data = make_zip({"App.vue": "<template/>\n", "main.py": "x = 1\n"})
+    result = extract_archive(io.BytesIO(data), tmp_path / "out", limits, registry)
+    assert [(f.path, f.language) for f in result.files] == [("App.vue", "Vue")]
+
+
+def test_extract_skips_generated_and_dependency_files(tmp_path, limits):
+    data = make_zip({
+        "Dockerfile": "FROM python:3.12\n",
+        "cmd/main.go": "package main\n",
+        "requirements.txt": "fastapi\n",
+        "package-lock.json": "{}",
+        "static/app.min.js": "var a=1;",
+        "vendor/lib/lib.go": "package lib\n",
+        "pkg.egg-info/PKG-INFO.txt": "x\n",
+        "target/out.rs": "fn main() {}\n",
+        "config/secrets.yaml": "token: x\n",
+    })
+    result = extract_archive(io.BytesIO(data), tmp_path / "out", limits)
+    assert sorted((f.path, f.language) for f in result.files) == [
+        ("Dockerfile", "Dockerfile"), ("cmd/main.go", "Go"), ("requirements.txt", "Text")
+    ]
+    assert result.skipped == 6
 
 
 def test_count_lines():
