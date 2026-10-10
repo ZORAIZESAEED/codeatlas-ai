@@ -1,4 +1,4 @@
-# CodeAtlas architecture — Milestones 1–2
+# CodeAtlas architecture — Milestones 1–3
 
 ## Components
 - **Frontend:** Next.js App Router. `src/app/page.tsx` renders a client-side dashboard (`src/components/`):
@@ -42,5 +42,67 @@
 ## Lifecycle
 The engine opens at startup and is disposed at shutdown. Migrations run separately (`alembic upgrade head`); Docker runs them before launching Uvicorn. CORS allows the configured frontend origin with `GET`, `POST`, `DELETE`.
 
+## Milestone 3 — retrieval
+### Components
+- **API:** `app/api/search.py` provides `POST /{id}/index`, `GET /{id}/index-status` and `POST /{id}/search`. `DELETE /{id}` in `projects.py` also removes index rows (same transaction) and then the vector collections (after commit).
+- **`app/services/embeddings/`**
+  - `base.py`: `EmbeddingProvider` (`embed_documents`, `embed_query`, `model_identifier`, `embedding_dimension`) validates counts, dimensions and finiteness.
+  - `local_provider.py`: fastembed/ONNX on CPU, loaded lazily under a lock, with per-model query/document prefixes.
+  - `fake_provider.py`: deterministic hashing embeddings for tests.
+  - `registry.py`: cached providers per configuration. A project's recorded model can be requested explicitly.
+- **`app/services/indexing/`**
+  - `documents.py`: `ChunkRef`, deterministic `record_id`, versioned `embedding_text` / `embed_hash`, FTS fields with identifier sub-words.
+  - `vector_store.py`: ChromaDB `PersistentClient` (telemetry off), collection naming, batched upsert/get/update/delete/query, project and orphan collection cleanup.
+  - `manifest.py`: `index_entries` and `chunk_fts` writes.
+  - `status.py`: derives the effective status (`pending` / `indexing` / `ready` / `stale` / `failed`).
+  - `indexer.py`: the orchestrator.
+- **`app/services/retrieval/`**
+  - `terms.py`: identifier splitting, query terms, identifier/path detection and match rules.
+  - `keyword.py`: exact identifier/path retriever and FTS5 BM25 retriever.
+  - `semantic.py`: ChromaDB retriever.
+  - `fusion.py`: weighted RRF.
+  - `reranker.py`: `Reranker` protocol and `FeatureReranker`.
+  - `models.py`: shared types and SQL filters.
+  - `hybrid.py`: the search pipeline.
+- **`app/services/evaluation/`**: `metrics.py` (Recall@K, Precision@K, Hit@K, MRR) and `benchmark.py` (CLI runner over `backend/benchmarks/`).
+- **Frontend:**
+  - `IndexCard` (overview): status pill, model, counts, real progress via polling, Build/Update/Reindex.
+  - `SearchPanel` (Search tab): query, mode selector, language/symbol-type/directory filters, results with highlighted line-numbered snippets, method badges, fallback/stale warnings.
+  - Clicking a result remounts `FileExplorer` with `initialPath` + `initialRange`, so `CodeViewer` highlights and scrolls to the cited lines.
+
+### Data
+- `projects.analysis_revision` is incremented by every successful analysis.
+- `search_indexes` (one row per project) stores:
+  - status;
+  - provider, model, dimension, input version and collection name;
+  - the analysis revision it was built from and the indexed chunk count;
+  - last-run counters (total, processed, embedded, reused, removed, skipped);
+  - started/indexed timestamps, duration and error.
+- `index_entries` is the manifest. Columns: `id` (AUTOINCREMENT, also the FTS rowid), project_id, `record_id` (ChromaDB id, unique per project), `embed_hash`, path, start/end line, chunk kind, symbol, symbol kind, language, content hash. Indexes: `(project_id, path)` and `(project_id, embed_hash)`.
+- `chunk_fts` is a contentless FTS5 table (`project, path, symbol, body`, `unicode61` with `_` as a token character). The `project` column holds a per-project token, so MATCH is restricted to one project.
+- ChromaDB holds one cosine collection per project × provider × model × dimension × input version, with the metadata listed in the README. Vectors are not stored in SQLite.
+- Alembic revision `0004_search_index` (additive).
+
+### Indexing flow (`indexer.index_project`)
+1. The project must exist and analysis must be `ready`. An in-process guard allows one run per project (409 otherwise). Status `indexing` is committed.
+2. Load chunk refs from `code_chunks`, joined to `code_symbols` for the symbol kind. Enforce `INDEX_MAX_CHUNKS`.
+3. Sweep orphan collections. Open or create the target collection.
+4. Reconcile ChromaDB ids with the manifest. Diff by `record_id` into kept, added and removed sets. Kept records get metadata refreshed without re-embedding.
+5. Read added chunks one file at a time and verify their SHA-256 (mismatches are skipped and counted). Build the embedding text, then per batch: reuse a vector (same record id already in Chroma, or same `embed_hash`) or embed. Upsert, commit progress counters, check `INDEX_TIMEOUT_SECONDS`.
+6. In one SQLite transaction: delete removed entries and FTS rows, insert new entries and FTS rows, record model/revision/counts and mark `ready`.
+7. Delete obsolete vectors, and the previous model's collection if the model changed. A failure here is logged and repaired by the next run.
+
+Any exception before step 6 commits rolls back SQLite and marks the run `failed`. The previous index stays usable.
+
+### Search flow (`hybrid.search`)
+1. Normalize the query (printable characters, collapsed whitespace, ≤ 500 chars) and clamp the limit. Return 404 for an unknown project and 409 if nothing is indexed.
+2. Run the retrievers for the mode, each with the same filters and a candidate pool (`SEARCH_CANDIDATE_POOL`):
+   - exact (identifiers/paths);
+   - FTS5 BM25 with column weights path 3, symbol 4, body 1;
+   - semantic (query embedded with the index's model; record ids mapped through the manifest; unknown ids dropped).
+3. Weighted RRF with query-aware keyword weight. Deduplicate by entry; ties break by best rank, then entry id.
+4. Source validation: the file must be in the manifest and its current text must hash to the indexed content hash. Overlapping ranges in a file keep the best-ranked one.
+5. Optional reranking, then truncate to `limit`. The response carries snippets, citations, warnings, fusion weights, candidate counts and per-stage timings.
+
 ## Not implemented yet
-Embeddings and vector indexing (ChromaDB), search (M3), RAG Q&A (M4). Chunks are prepared for embedding but nothing is embedded or searched yet. The project does **not** yet search or answer questions about repositories.
+Source-grounded, LLM-generated answers (M4). Search returns ranked source chunks only.

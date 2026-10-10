@@ -31,8 +31,22 @@
 - [x] Tests: parsers, chunking invariants, analysis API, migration of a pre-existing project
 - [x] Technical review: `\n`-only line model (form feed / U+2028 / U+0085 fix), BOM-safe parsing, per-file failure isolation, structural parsing size limits, safe handling of projects deleted mid-analysis, regression tests (136 backend tests), headless-browser check of the Symbols/Chunks UI
 
+## Milestone 3 — Retrieval (branch `feature/milestone-3-retrieval`)
+- [x] Milestone 2 fast-forward merged into `main` (`e9603a0`) after re-running its tests; work continues on `feature/milestone-3-retrieval`
+- [x] Additive migration `0004_search_index` (`search_indexes`, `index_entries`, contentless FTS5 `chunk_fts`, `projects.analysis_revision`), tested up/down/up on a copy of the development database
+- [x] Embedding provider interface; local fastembed provider (lazy, CPU, configurable model/batch/threads/query prefix); deterministic fake provider for tests
+- [x] ChromaDB persistence: one collection per project and model, deterministic content-addressed record IDs, full chunk metadata, batched writes
+- [x] Incremental indexing: unchanged chunks skipped, moved chunks reuse vectors, changed chunks re-embedded, removed chunks deleted; reconciliation of partial failures; stale detection after re-analysis or model change; real progress counters; chunk and time limits
+- [x] Keyword search (exact identifiers/paths + FTS5 BM25 with identifier splitting, injection-safe), semantic search, weighted RRF hybrid with explicit keyword fallback, optional feature reranker, filters, source validation of every result
+- [x] API: `POST /index`, `GET /index-status`, `POST /search`; project deletion removes index data
+- [x] Frontend: search-index card with live progress; Search workspace (modes, filters, highlighted snippets, method badges, warnings); results open the code viewer at the cited lines
+- [x] Retrieval benchmark (2 controlled repositories, 41 labelled queries, 7 categories) with recorded results for two models and a pre-fix baseline
+- [x] Tests: 224 backend tests (136 existing + 88 new), including startup recovery after a killed run and the older-SQLite FTS path; Ruff; TypeScript check; production build
+- [x] Live verification with `fastapi/full-stack-fastapi-template` and `koajs/koa` in isolated storage (indexing, three modes, citation checks, unchanged reindex, deletion, browser navigation)
+
 ## Next milestones
 - [ ] Structural parsing for more languages (e.g. Go, Rust, Java via Tree-sitter grammars)
-- [ ] Embeddings / vector indexing and search (M3)
+- [ ] Retrieval quality: path-aware weighting of tests/docs/generated files, fusion that does not penalize single-retriever hits, cross-encoder reranking, larger benchmark
+- [ ] Background indexing jobs (cross-process lock) for large repositories
 - [ ] Source-grounded Q&A (M4)
 - [ ] Possible follow-ups: background import jobs, authenticated/private GitHub imports, branch selection, browsing non-indexed text files

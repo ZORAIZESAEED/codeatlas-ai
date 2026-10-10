@@ -141,3 +141,112 @@ class ChunkListResponse(BaseModel):
 
 class GitHubImportRequest(BaseModel):
     url: str = Field(min_length=1, max_length=300, examples=["https://github.com/owner/repo"])
+
+
+class IndexStatusOut(BaseModel):
+    project_id: str
+    # pending | indexing | ready | stale | failed
+    status: str
+    stale_reasons: list[str] = []
+    error: str | None = None
+    embedding_provider: str | None = None
+    embedding_model: str | None = None
+    embedding_dimension: int | None = None
+    input_version: str | None = None
+    configured_provider: str
+    configured_model: str
+    indexed_chunk_count: int = 0
+    analysis_chunk_count: int = 0
+    analysis_revision: int = 0
+    indexed_analysis_revision: int | None = None
+    # Counters of the last (or running) indexing run.
+    total_chunks: int = 0
+    processed_chunks: int = 0
+    embedded_count: int = 0
+    reused_count: int = 0
+    removed_count: int = 0
+    skipped_count: int = 0
+    started_at: datetime | None = None
+    last_indexed_at: datetime | None = None
+    duration_ms: int | None = None
+
+
+def _normalize_path_filter(value: str | None) -> str | None:
+    if value is None:
+        return None
+    value = value.strip().replace("\\", "/").strip("/")
+    while value.startswith("./"):
+        value = value[2:]
+    if not value:
+        return None
+    if any(not ch.isprintable() for ch in value) or ".." in value.split("/"):
+        raise ValueError("Invalid path filter.")
+    return value
+
+
+class SearchRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=500)
+    mode: Literal["keyword", "semantic", "hybrid"] = "hybrid"
+    limit: int = Field(default=10, ge=1, le=50)
+    language: str | None = Field(default=None, max_length=30)
+    file_path: str | None = Field(default=None, max_length=1024)
+    directory: str | None = Field(default=None, max_length=1024)
+    symbol_type: str | None = Field(default=None, max_length=20)
+    # None = server default (SEARCH_RERANK_DEFAULT, off).
+    rerank: bool | None = None
+
+    @field_validator("file_path", "directory")
+    @classmethod
+    def normalize_path(cls, value: str | None) -> str | None:
+        return _normalize_path_filter(value)
+
+    @field_validator("language", "symbol_type")
+    @classmethod
+    def blank_to_none(cls, value: str | None) -> str | None:
+        return value.strip() or None if value is not None else None
+
+
+class SearchResultOut(BaseModel):
+    chunk_id: str
+    rank: int
+    file_path: str
+    symbol_name: str | None
+    symbol_type: str | None
+    chunk_kind: str
+    language: str
+    start_line: int
+    end_line: int
+    snippet: str
+    snippet_truncated: bool
+    retrieval_methods: list[str]
+    # Ranking score used to order results (RRF, optionally reranked). Not a confidence.
+    score: float
+    fusion_score: float
+    method_ranks: dict[str, int]
+    raw_scores: dict[str, float]
+    rerank_features: dict[str, float] = {}
+
+
+class Citation(BaseModel):
+    rank: int
+    file_path: str
+    start_line: int
+    end_line: int
+    reference: str  # "path:start-end"
+
+
+class SearchResponse(BaseModel):
+    project_id: str
+    query: str
+    mode_requested: str
+    mode_used: str
+    fallback_reason: str | None = None
+    reranked: bool
+    # RRF weight applied to each retriever that ran for this query.
+    fusion_weights: dict[str, float] = {}
+    index_status: IndexStatusOut
+    results: list[SearchResultOut]
+    citations: list[Citation]
+    warnings: list[str] = []
+    candidate_counts: dict[str, int] = {}
+    timings_ms: dict[str, float] = {}

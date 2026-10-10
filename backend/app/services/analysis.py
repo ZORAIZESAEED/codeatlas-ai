@@ -137,6 +137,7 @@ def analyze_project(session: Session, settings: Settings, project: Project) -> P
     project.chunk_count = len(chunks)
     project.analysis_status = "ready"
     project.analyzed_at = _now()
+    project.analysis_revision = (project.analysis_revision or 0) + 1  # stales search indexes
     session.commit()
     return project
 

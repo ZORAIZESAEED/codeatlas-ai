@@ -33,6 +33,11 @@ def settings(tmp_path, monkeypatch) -> Settings:
         workspace_dir=str(tmp_path / "workspaces"),
         max_upload_bytes=1024 * 1024,
         max_download_bytes=2 * 1024 * 1024,
+        # Never touch the development vector store or download model weights in tests.
+        chroma_dir=str(tmp_path / "chroma"),
+        embedding_provider="fake",
+        embedding_model="fake-hash-64",
+        embedding_cache_dir=str(tmp_path / "models"),
     )
 
 

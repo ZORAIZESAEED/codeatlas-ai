@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from starlette.datastructures import UploadFile
 
 from app.core.config import Settings
-from app.db.models import CodeChunk, CodeSymbol, Project, ProjectFile
+from app.db.models import CodeChunk, CodeSymbol, Project, ProjectFile, SearchIndex
 from app.db.session import get_db
 from app.schemas import (
     AnalysisOverview,
@@ -33,6 +33,8 @@ from app.schemas import (
 from app.services.analysis import delete_analysis, run_analysis
 from app.services.chunking import split_lines
 from app.services.github import download_repository, parse_github_url
+from app.services.indexing.indexer import drop_project_vectors
+from app.services.indexing.manifest import delete_project_index
 from app.services.ingestion import (
     IngestionError,
     delete_project_files,
@@ -123,12 +125,16 @@ def delete_project(
     settings: Settings = Depends(get_settings_dep),
 ) -> Response:
     project = _get_project(db, project_id)
+    was_indexed = db.get(SearchIndex, project.id) is not None
+    delete_project_index(db, project.id)
     delete_analysis(db, project.id)
     db.execute(delete(ProjectFile).where(ProjectFile.project_id == project.id))
     db.delete(project)
     db.commit()
-    # Files are removed after the DB commit so a failed commit never loses data on disk.
+    # Files and vectors are removed after the DB commit so a failed commit never loses data.
     delete_project_files(settings, project.id)
+    if was_indexed:
+        drop_project_vectors(settings, project.id)
     return Response(status_code=204)
 
 

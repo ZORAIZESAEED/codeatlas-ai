@@ -9,9 +9,15 @@ import {
   type Overview,
   type Project,
 } from "@/lib/api";
+import type { LineRange } from "./CodeViewer";
 import FileExplorer from "./FileExplorer";
+import IndexCard from "./IndexCard";
+import SearchPanel from "./SearchPanel";
 
-type Tab = "overview" | "files";
+type Tab = "overview" | "files" | "search";
+type OpenTarget = { path: string; range: LineRange | null; nonce: number };
+
+const TAB_LABEL: Record<Tab, string> = { overview: "Overview", files: "Files", search: "Search" };
 
 export default function ProjectWorkspace({
   project,
@@ -25,7 +31,7 @@ export default function ProjectWorkspace({
   const [tab, setTab] = useState<Tab>("overview");
   const [overview, setOverview] = useState<Overview | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [openPath, setOpenPath] = useState<string | null>(null);
+  const [openTarget, setOpenTarget] = useState<OpenTarget | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -59,8 +65,8 @@ export default function ProjectWorkspace({
     }
   };
 
-  const openFile = (path: string) => {
-    setOpenPath(path);
+  const openFile = (path: string, range: LineRange | null = null) => {
+    setOpenTarget((prev) => ({ path, range, nonce: (prev?.nonce ?? 0) + 1 }));
     setTab("files");
   };
 
@@ -102,7 +108,7 @@ export default function ProjectWorkspace({
       </div>
 
       <div className="tabs" role="tablist">
-        {(["overview", "files"] as const).map((t) => (
+        {(["overview", "files", "search"] as const).map((t) => (
           <button
             key={t}
             role="tab"
@@ -110,7 +116,7 @@ export default function ProjectWorkspace({
             className={`tab${tab === t ? " active" : ""}`}
             onClick={() => setTab(t)}
           >
-            {t === "overview" ? "Overview" : "Files"}
+            {TAB_LABEL[t]}
           </button>
         ))}
       </div>
@@ -128,13 +134,23 @@ export default function ProjectWorkspace({
         ) : error ? null : (
           <p className="muted">Loading overview…</p>
         )
-      ) : (
+      ) : null}
+      {tab === "files" ? (
         <FileExplorer
-          key={`${project.id}:${overview?.analysis.analyzed_at ?? ""}`}
+          key={`${project.id}:${overview?.analysis.analyzed_at ?? ""}:${openTarget?.nonce ?? 0}`}
           projectId={project.id}
-          initialPath={openPath}
+          initialPath={openTarget?.path ?? null}
+          initialRange={openTarget?.range ?? null}
         />
-      )}
+      ) : null}
+      {/* Kept mounted so query and results survive switching to the code viewer and back. */}
+      <div hidden={tab !== "search"}>
+        <SearchPanel
+          projectId={project.id}
+          languages={overview?.languages.map((l) => l.language) ?? project.languages}
+          onOpen={openFile}
+        />
+      </div>
     </section>
   );
 }
@@ -172,6 +188,12 @@ function OverviewView({
         onAnalyze={onAnalyze}
         analyzing={analyzing}
         onOpenFile={onOpenFile}
+      />
+
+      <IndexCard
+        key={overview.analysis.analyzed_at ?? "never"}
+        projectId={project.id}
+        analysisReady={overview.analysis.status === "ready"}
       />
 
       <div className="overview-grid">

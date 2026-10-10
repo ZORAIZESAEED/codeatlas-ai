@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api, type FileContent, type ProjectFile } from "@/lib/api";
 import CodeViewer, { type LineRange } from "./CodeViewer";
 import OutlinePanel from "./OutlinePanel";
@@ -40,9 +40,11 @@ function ancestors(path: string): string[] {
 export default function FileExplorer({
   projectId,
   initialPath,
+  initialRange = null,
 }: {
   projectId: string;
   initialPath: string | null;
+  initialRange?: LineRange | null;
 }) {
   const [files, setFiles] = useState<ProjectFile[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +57,8 @@ export default function FileExplorer({
   const [contentError, setContentError] = useState<string | null>(null);
   const [loadingContent, setLoadingContent] = useState(false);
   const [range, setRange] = useState<LineRange | null>(null);
+  // A search result opens its file with the cited lines highlighted once the file has loaded.
+  const pendingRange = useRef<LineRange | null>(initialRange);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -79,6 +83,10 @@ export default function FileExplorer({
       .then((data) => {
         setContent(data);
         setLoadingContent(false);
+        if (pendingRange.current && data.path === initialPath) {
+          setRange(pendingRange.current);
+          pendingRange.current = null;
+        }
       })
       .catch((e: unknown) => {
         if (e instanceof Error && e.name === "AbortError") return;
@@ -87,7 +95,7 @@ export default function FileExplorer({
         setLoadingContent(false);
       });
     return () => controller.abort();
-  }, [projectId, selected]);
+  }, [projectId, selected, initialPath]);
 
   const visibleFiles = useMemo(() => {
     const query = filter.trim().toLowerCase();

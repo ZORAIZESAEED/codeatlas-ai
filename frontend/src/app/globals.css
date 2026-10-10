@@ -155,6 +155,49 @@ h2 { font-size: 15px; margin: 0 0 12px; }
 .pill { font-size: 11px; font-weight: 700; border-radius: 20px; padding: 2px 9px; border: 1px solid #34445f; color: var(--muted-2); }
 .pill-ready { color: var(--success); border-color: #275c40; background: #0f2219; }
 .pill-failed { color: var(--danger); border-color: #5a2a35; background: #24121a; }
+.pill-stale { color: #f5dca0; border-color: #5c4a1f; background: #241d0f; }
+.pill-indexing { color: var(--accent-2); border-color: #4467c2; background: #16233f; }
+
+/* Search index card */
+.index-alert { margin: 14px 0 0; }
+.index-progress { margin-top: 14px; display: grid; gap: 6px; }
+.index-note { margin: 12px 0 0; }
+.index-chips { margin-top: 14px; }
+
+/* Search workspace */
+.search { display: grid; gap: 14px; }
+.search-form { display: grid; gap: 12px; padding: 16px; }
+.search-row { display: flex; gap: 10px; }
+.search-input, .search-dir, .search-options select { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font: inherit; }
+.search-input { flex: 1; min-width: 0; padding: 11px 13px; font-size: 15px; }
+.search-input:focus, .search-dir:focus, .search-options select:focus { outline: 2px solid #4467c2; border-color: transparent; }
+.search-options { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.search-options select, .search-dir { padding: 7px 10px; font-size: 13px; }
+.search-dir { width: 200px; }
+.segmented { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.segmented button { background: var(--panel-2); border: 0; border-right: 1px solid var(--border); color: var(--muted-2); font: inherit; font-size: 13px; font-weight: 600; padding: 7px 12px; cursor: pointer; }
+.segmented button:last-child { border-right: 0; }
+.segmented button.active { background: #2f4f9e; color: var(--text); }
+.search-meta { margin: 0 0 10px; }
+.search-mode-hint { margin: 0; }
+.result-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.result { padding: 0; overflow: hidden; }
+.result-head { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.result-rank { flex-shrink: 0; width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: #1e2d4d; color: var(--accent-2); }
+.result-title { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.result-path { font-size: 13px; }
+.result-sub { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; min-width: 0; overflow-wrap: anywhere; }
+.result-sub .chip { padding: 1px 7px; font-size: 11px; }
+.result-methods { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+.method { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; border-radius: 6px; padding: 2px 6px; border: 1px solid #34445f; color: var(--muted-2); }
+.method-exact { color: #f5d67a; border-color: #5c4a1f; }
+.method-keyword { color: #9fe0b4; border-color: #275c40; }
+.method-semantic { color: #c9a6ff; border-color: #4a3a7a; }
+.snippet { display: flex; width: 100%; text-align: left; background: #0c1220; border: 0; padding: 0; cursor: pointer; overflow: auto; max-height: 340px; color: inherit; font: inherit; }
+.snippet:hover { background: #0e1626; }
+.snippet pre { margin: 0; padding: 10px 0; font-family: var(--mono); font-size: 12.5px; line-height: 19px; tab-size: 4; }
+.snippet .gutter { background: transparent; position: static; }
+.result-foot { margin: 0; padding: 8px 14px; border-top: 1px solid var(--border-soft); }
 
 /* highlight.js tokens (CodeAtlas dark palette) */
 .hljs-comment, .hljs-quote { color: #6b7a96; font-style: italic; }
@@ -189,6 +232,10 @@ h2 { font-size: 15px; margin: 0 0 12px; }
   .tree-panel { position: static; max-height: 320px; }
   .analysis-grid { grid-template-columns: 1fr; }
   .analysis-head { flex-direction: column; }
+  .search-row { flex-direction: column; }
+  .search-dir { width: 100%; }
+  .result-head { flex-wrap: wrap; }
+  .result-methods { justify-content: flex-start; }
 }
 @media (max-width: 520px) {
   .topbar { padding: 0 16px; }

@@ -85,6 +85,79 @@ export type Overview = {
   analysis: AnalysisOverview;
 };
 
+export type IndexState = "pending" | "indexing" | "ready" | "stale" | "failed";
+
+export type IndexStatus = {
+  project_id: string;
+  status: IndexState | string;
+  stale_reasons: string[];
+  error: string | null;
+  embedding_provider: string | null;
+  embedding_model: string | null;
+  embedding_dimension: number | null;
+  input_version: string | null;
+  configured_provider: string;
+  configured_model: string;
+  indexed_chunk_count: number;
+  analysis_chunk_count: number;
+  total_chunks: number;
+  processed_chunks: number;
+  embedded_count: number;
+  reused_count: number;
+  removed_count: number;
+  skipped_count: number;
+  started_at: string | null;
+  last_indexed_at: string | null;
+  duration_ms: number | null;
+};
+
+export type SearchMode = "hybrid" | "keyword" | "semantic";
+
+export type SearchRequest = {
+  query: string;
+  mode: SearchMode;
+  limit?: number;
+  language?: string | null;
+  directory?: string | null;
+  symbol_type?: string | null;
+};
+
+export type SearchResult = {
+  chunk_id: string;
+  rank: number;
+  file_path: string;
+  symbol_name: string | null;
+  symbol_type: string | null;
+  chunk_kind: string;
+  language: string;
+  start_line: number;
+  end_line: number;
+  snippet: string;
+  snippet_truncated: boolean;
+  retrieval_methods: string[];
+  score: number;
+  fusion_score: number;
+  method_ranks: Record<string, number>;
+  raw_scores: Record<string, number>;
+  rerank_features: Record<string, number>;
+};
+
+export type SearchResponse = {
+  project_id: string;
+  query: string;
+  mode_requested: SearchMode;
+  mode_used: SearchMode;
+  fallback_reason: string | null;
+  reranked: boolean;
+  fusion_weights: Record<string, number>;
+  index_status: IndexStatus;
+  results: SearchResult[];
+  citations: { rank: number; file_path: string; start_line: number; end_line: number; reference: string }[];
+  warnings: string[];
+  candidate_counts: Record<string, number>;
+  timings_ms: Record<string, number>;
+};
+
 export class ApiError extends Error {}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -133,6 +206,16 @@ export const api = {
       `${projectPath(id)}/chunks?limit=1000&path=${encodeURIComponent(path)}`,
       { signal },
     ),
+  indexStatus: (id: string, signal?: AbortSignal) =>
+    request<IndexStatus>(`${projectPath(id)}/index-status`, { signal }),
+  buildIndex: (id: string) => request<IndexStatus>(`${projectPath(id)}/index`, { method: "POST" }),
+  search: (id: string, body: SearchRequest, signal?: AbortSignal) =>
+    request<SearchResponse>(`${projectPath(id)}/search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal,
+    }),
   deleteProject: (id: string) => request<void>(projectPath(id), { method: "DELETE" }),
   importGithub: (url: string) =>
     request<Project>("/api/projects/import/github", {

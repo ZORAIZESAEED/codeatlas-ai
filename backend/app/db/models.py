@@ -29,6 +29,9 @@ class Project(Base):
     analyzed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     symbol_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     chunk_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # Incremented by every successful analysis; a search index built from an older revision
+    # is stale (Milestone 3).
+    analysis_revision: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
 
 class ProjectFile(Base):
@@ -86,4 +89,64 @@ class CodeChunk(Base):
     symbol: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     language: Mapped[str] = mapped_column(String(30), nullable=False)
     char_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+class SearchIndex(Base):
+    """Search index state for one project (Milestone 3). Vectors live in ChromaDB only."""
+
+    __tablename__ = "search_indexes"
+
+    project_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("projects.id", ondelete="CASCADE"), primary_key=True
+    )
+    # pending -> indexing -> ready | failed. "stale" is derived when read (see indexing.status).
+    status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False)
+    embedding_provider: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    embedding_model: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    embedding_dimension: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    input_version: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    collection_name: Mapped[str | None] = mapped_column(String(63), nullable=True)
+    # Analysis revision the indexed entries were built from.
+    analysis_revision: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    chunk_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # Last run: real counters, committed per batch while indexing.
+    total_chunks: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    processed_chunks: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    embedded_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    reused_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    removed_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    skipped_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    indexed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    error: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+
+
+class IndexEntry(Base):
+    """Manifest of indexed chunks. ``id`` is also the rowid in the ``chunk_fts`` FTS5 table, so
+    ids are never reused (AUTOINCREMENT). ``record_id`` is the ChromaDB record id."""
+
+    __tablename__ = "index_entries"
+    __table_args__ = (
+        UniqueConstraint("project_id", "record_id", name="uq_index_entries_record"),
+        Index("ix_index_entries_project_path", "project_id", "path"),
+        Index("ix_index_entries_project_embed", "project_id", "embed_hash"),
+        {"sqlite_autoincrement": True},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    project_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    record_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    embed_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    path: Mapped[str] = mapped_column(String(1024), nullable=False)
+    start_line: Mapped[int] = mapped_column(Integer, nullable=False)
+    end_line: Mapped[int] = mapped_column(Integer, nullable=False)
+    chunk_kind: Mapped[str] = mapped_column(String(20), nullable=False)
+    symbol: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    # Kind of the chunk's symbol from code_symbols (function, class, method, ...), if any.
+    symbol_kind: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    language: Mapped[str] = mapped_column(String(30), nullable=False)
     content_hash: Mapped[str] = mapped_column(String(64), nullable=False)

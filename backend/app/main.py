@@ -1,15 +1,33 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import sessionmaker
 
 from app.api.health import router as health_router
 from app.api.projects import ingestion_error_handler
 from app.api.projects import router as projects_router
+from app.api.search import router as search_router
 from app.core.config import Settings, get_settings
 from app.db.session import create_db_engine
+from app.services.indexing.indexer import recover_interrupted_runs
 from app.services.ingestion import IngestionError
+
+logger = logging.getLogger(__name__)
+
+
+def _recover_indexing(session_factory) -> None:
+    """A server stopped mid-indexing leaves the row in ``indexing``; report it as failed."""
+    try:
+        with session_factory() as session:
+            recovered = recover_interrupted_runs(session)
+        if recovered:
+            logger.warning("Marked %d interrupted indexing run(s) as failed", recovered)
+    except OperationalError:
+        # Database not migrated to 0004 yet; search endpoints will report the problem.
+        logger.warning("Search index tables missing; run `alembic upgrade head`")
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -22,6 +40,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.settings = config
         app.state.session_factory = sessionmaker(bind=engine, expire_on_commit=False)
         # Run `alembic upgrade head` before starting the server.
+        _recover_indexing(app.state.session_factory)
         yield
         engine.dispose()
 
@@ -35,6 +54,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.include_router(health_router)
     app.include_router(projects_router)
+    app.include_router(search_router)
     app.add_exception_handler(IngestionError, ingestion_error_handler)
     return app
 

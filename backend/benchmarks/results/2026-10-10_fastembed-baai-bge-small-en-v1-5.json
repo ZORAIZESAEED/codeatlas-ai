@@ -1,0 +1,2338 @@
+{
+  "evaluated_at": "2026-10-10T03:50:07+00:00",
+  "benchmark_version": 1,
+  "query_count": 41,
+  "categories": {
+    "api_endpoint": 5,
+    "class_location": 4,
+    "configuration": 5,
+    "cross_file": 4,
+    "function_location": 5,
+    "keyword_identifier": 7,
+    "semantic": 11
+  },
+  "embedding": {
+    "provider": "fastembed",
+    "model": "BAAI/bge-small-en-v1.5",
+    "dimension": 384,
+    "input_version": "v1",
+    "max_input_chars": 2000
+  },
+  "retrieval": {
+    "result_limit": 10,
+    "candidate_pool": 50,
+    "rrf_k": 60,
+    "rrf_weights": {
+      "exact": 1.0,
+      "keyword_identifier_query": 1.0,
+      "keyword_natural_query": 0.25,
+      "semantic": 1.0
+    },
+    "reranker": "features-v1",
+    "reranker_weights": {
+      "exact_symbol": 0.3,
+      "exact_path": 0.2,
+      "identifier_overlap": 0.2,
+      "term_coverage": 0.1
+    },
+    "chunk_max_lines": 100,
+    "chunk_max_chars": 4000
+  },
+  "environment": {
+    "python": "3.14.6",
+    "platform": "Windows-11-10.0.22621-SP0",
+    "processor": "Intel64 Family 6 Model 94 Stepping 3, GenuineIntel",
+    "cpu_count": 8
+  },
+  "repositories": {
+    "shopapi": {
+      "files": 14,
+      "chunks": 48,
+      "embedded": 48,
+      "index_seconds": 12.038
+    },
+    "taskboard": {
+      "files": 16,
+      "chunks": 40,
+      "embedded": 40,
+      "index_seconds": 6.314
+    }
+  },
+  "configs": {
+    "keyword": {
+      "mode": "keyword",
+      "rerank": false,
+      "metrics": {
+        "mrr": 0.6464,
+        "recall@1": 0.4573,
+        "precision@1": 0.5122,
+        "hit@1": 0.5122,
+        "recall@3": 0.689,
+        "precision@3": 0.3415,
+        "hit@3": 0.7805,
+        "recall@5": 0.75,
+        "precision@5": 0.2341,
+        "hit@5": 0.8293,
+        "recall@10": 0.8293,
+        "precision@10": 0.1317,
+        "hit@10": 0.9024
+      },
+      "by_category": {
+        "api_endpoint": {
+          "mrr": 0.7,
+          "recall@1": 0.6,
+          "precision@1": 0.6,
+          "hit@1": 0.6,
+          "recall@3": 0.8,
+          "precision@3": 0.2667,
+          "hit@3": 0.8,
+          "recall@5": 0.8,
+          "precision@5": 0.16,
+          "hit@5": 0.8,
+          "recall@10": 0.8,
+          "precision@10": 0.08,
+          "hit@10": 0.8
+        },
+        "class_location": {
+          "mrr": 0.6333,
+          "recall@1": 0.5,
+          "precision@1": 0.5,
+          "hit@1": 0.5,
+          "recall@3": 0.75,
+          "precision@3": 0.25,
+          "hit@3": 0.75,
+          "recall@5": 1.0,
+          "precision@5": 0.2,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.1,
+          "hit@10": 1.0
+        },
+        "configuration": {
+          "mrr": 0.6667,
+          "recall@1": 0.2,
+          "precision@1": 0.4,
+          "hit@1": 0.4,
+          "recall@3": 0.7,
+          "precision@3": 0.5333,
+          "hit@3": 1.0,
+          "recall@5": 0.8,
+          "precision@5": 0.4,
+          "hit@5": 1.0,
+          "recall@10": 0.9,
+          "precision@10": 0.22,
+          "hit@10": 1.0
+        },
+        "cross_file": {
+          "mrr": 0.3333,
+          "recall@1": 0.0,
+          "precision@1": 0.0,
+          "hit@1": 0.0,
+          "recall@3": 0.4375,
+          "precision@3": 0.3333,
+          "hit@3": 0.75,
+          "recall@5": 0.5,
+          "precision@5": 0.25,
+          "hit@5": 0.75,
+          "recall@10": 0.625,
+          "precision@10": 0.15,
+          "hit@10": 1.0
+        },
+        "function_location": {
+          "mrr": 0.4917,
+          "recall@1": 0.4,
+          "precision@1": 0.4,
+          "hit@1": 0.4,
+          "recall@3": 0.6,
+          "precision@3": 0.2,
+          "hit@3": 0.6,
+          "recall@5": 0.6,
+          "precision@5": 0.12,
+          "hit@5": 0.6,
+          "recall@10": 0.8,
+          "precision@10": 0.08,
+          "hit@10": 0.8
+        },
+        "keyword_identifier": {
+          "mrr": 1.0,
+          "recall@1": 1.0,
+          "precision@1": 1.0,
+          "hit@1": 1.0,
+          "recall@3": 1.0,
+          "precision@3": 0.4762,
+          "hit@3": 1.0,
+          "recall@5": 1.0,
+          "precision@5": 0.2857,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.1429,
+          "hit@10": 1.0
+        },
+        "semantic": {
+          "mrr": 0.5766,
+          "recall@1": 0.3409,
+          "precision@1": 0.4545,
+          "hit@1": 0.4545,
+          "recall@3": 0.5455,
+          "precision@3": 0.303,
+          "hit@3": 0.6364,
+          "recall@5": 0.6136,
+          "precision@5": 0.2182,
+          "hit@5": 0.7273,
+          "recall@10": 0.7273,
+          "precision@10": 0.1364,
+          "hit@10": 0.8182
+        }
+      },
+      "by_repository": {
+        "shopapi": {
+          "mrr": 0.7124,
+          "recall@1": 0.51,
+          "precision@1": 0.56,
+          "hit@1": 0.56,
+          "recall@3": 0.77,
+          "precision@3": 0.3867,
+          "hit@3": 0.92,
+          "recall@5": 0.81,
+          "precision@5": 0.256,
+          "hit@5": 0.92,
+          "recall@10": 0.86,
+          "precision@10": 0.14,
+          "hit@10": 0.96
+        },
+        "taskboard": {
+          "mrr": 0.5432,
+          "recall@1": 0.375,
+          "precision@1": 0.4375,
+          "hit@1": 0.4375,
+          "recall@3": 0.5625,
+          "precision@3": 0.2708,
+          "hit@3": 0.5625,
+          "recall@5": 0.6562,
+          "precision@5": 0.2,
+          "hit@5": 0.6875,
+          "recall@10": 0.7812,
+          "precision@10": 0.1188,
+          "hit@10": 0.8125
+        }
+      },
+      "latency_ms": {
+        "mean": 16.71,
+        "p50": 16.62,
+        "p95": 27.12,
+        "stages_mean": {
+          "exact": 3.31,
+          "keyword": 1.34,
+          "fusion": 1.04,
+          "validation": 10.01,
+          "total": 16.67
+        }
+      },
+      "fallbacks": 0
+    },
+    "semantic": {
+      "mode": "semantic",
+      "rerank": false,
+      "metrics": {
+        "mrr": 0.9329,
+        "recall@1": 0.7439,
+        "precision@1": 0.878,
+        "hit@1": 0.878,
+        "recall@3": 0.878,
+        "precision@3": 0.4309,
+        "hit@3": 0.9756,
+        "recall@5": 0.9268,
+        "precision@5": 0.2829,
+        "hit@5": 1.0,
+        "recall@10": 0.9634,
+        "precision@10": 0.1537,
+        "hit@10": 1.0
+      },
+      "by_category": {
+        "api_endpoint": {
+          "mrr": 0.9,
+          "recall@1": 0.8,
+          "precision@1": 0.8,
+          "hit@1": 0.8,
+          "recall@3": 1.0,
+          "precision@3": 0.3333,
+          "hit@3": 1.0,
+          "recall@5": 1.0,
+          "precision@5": 0.2,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.1,
+          "hit@10": 1.0
+        },
+        "class_location": {
+          "mrr": 1.0,
+          "recall@1": 1.0,
+          "precision@1": 1.0,
+          "hit@1": 1.0,
+          "recall@3": 1.0,
+          "precision@3": 0.3333,
+          "hit@3": 1.0,
+          "recall@5": 1.0,
+          "precision@5": 0.2,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.1,
+          "hit@10": 1.0
+        },
+        "configuration": {
+          "mrr": 0.8,
+          "recall@1": 0.3,
+          "precision@1": 0.6,
+          "hit@1": 0.6,
+          "recall@3": 0.8,
+          "precision@3": 0.6,
+          "hit@3": 1.0,
+          "recall@5": 0.8,
+          "precision@5": 0.36,
+          "hit@5": 1.0,
+          "recall@10": 0.8,
+          "precision@10": 0.2,
+          "hit@10": 1.0
+        },
+        "cross_file": {
+          "mrr": 1.0,
+          "recall@1": 0.4375,
+          "precision@1": 1.0,
+          "hit@1": 1.0,
+          "recall@3": 0.75,
+          "precision@3": 0.5833,
+          "hit@3": 1.0,
+          "recall@5": 0.75,
+          "precision@5": 0.35,
+          "hit@5": 1.0,
+          "recall@10": 0.875,
+          "precision@10": 0.225,
+          "hit@10": 1.0
+        },
+        "function_location": {
+          "mrr": 1.0,
+          "recall@1": 1.0,
+          "precision@1": 1.0,
+          "hit@1": 1.0,
+          "recall@3": 1.0,
+          "precision@3": 0.3333,
+          "hit@3": 1.0,
+          "recall@5": 1.0,
+          "precision@5": 0.2,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.1,
+          "hit@10": 1.0
+        },
+        "keyword_identifier": {
+          "mrr": 1.0,
+          "recall@1": 1.0,
+          "precision@1": 1.0,
+          "hit@1": 1.0,
+          "recall@3": 1.0,
+          "precision@3": 0.4762,
+          "hit@3": 1.0,
+          "recall@5": 1.0,
+          "precision@5": 0.2857,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.1429,
+          "hit@10": 1.0
+        },
+        "semantic": {
+          "mrr": 0.8864,
+          "recall@1": 0.6591,
+          "precision@1": 0.8182,
+          "hit@1": 0.8182,
+          "recall@3": 0.7273,
+          "precision@3": 0.3939,
+          "hit@3": 0.9091,
+          "recall@5": 0.9091,
+          "precision@5": 0.3273,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.1818,
+          "hit@10": 1.0
+        }
+      },
+      "by_repository": {
+        "shopapi": {
+          "mrr": 0.94,
+          "recall@1": 0.74,
+          "precision@1": 0.88,
+          "hit@1": 0.88,
+          "recall@3": 0.86,
+          "precision@3": 0.44,
+          "hit@3": 1.0,
+          "recall@5": 0.9,
+          "precision@5": 0.288,
+          "hit@5": 1.0,
+          "recall@10": 0.94,
+          "precision@10": 0.156,
+          "hit@10": 1.0
+        },
+        "taskboard": {
+          "mrr": 0.9219,
+          "recall@1": 0.75,
+          "precision@1": 0.875,
+          "hit@1": 0.875,
+          "recall@3": 0.9062,
+          "precision@3": 0.4167,
+          "hit@3": 0.9375,
+          "recall@5": 0.9688,
+          "precision@5": 0.275,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.15,
+          "hit@10": 1.0
+        }
+      },
+      "latency_ms": {
+        "mean": 45.72,
+        "p50": 45.1,
+        "p95": 52.53,
+        "stages_mean": {
+          "semantic": 19.3,
+          "fusion": 1.61,
+          "validation": 23.7,
+          "total": 45.61
+        }
+      },
+      "fallbacks": 0
+    },
+    "hybrid": {
+      "mode": "hybrid",
+      "rerank": false,
+      "metrics": {
+        "mrr": 0.8882,
+        "recall@1": 0.6951,
+        "precision@1": 0.8293,
+        "hit@1": 0.8293,
+        "recall@3": 0.8415,
+        "precision@3": 0.4146,
+        "hit@3": 0.9268,
+        "recall@5": 0.878,
+        "precision@5": 0.2732,
+        "hit@5": 0.9512,
+        "recall@10": 0.9146,
+        "precision@10": 0.1415,
+        "hit@10": 0.9756
+      },
+      "by_category": {
+        "api_endpoint": {
+          "mrr": 0.7333,
+          "recall@1": 0.6,
+          "precision@1": 0.6,
+          "hit@1": 0.6,
+          "recall@3": 0.8,
+          "precision@3": 0.2667,
+          "hit@3": 0.8,
+          "recall@5": 0.8,
+          "precision@5": 0.16,
+          "hit@5": 0.8,
+          "recall@10": 1.0,
+          "precision@10": 0.1,
+          "hit@10": 1.0
+        },
+        "class_location": {
+          "mrr": 1.0,
+          "recall@1": 1.0,
+          "precision@1": 1.0,
+          "hit@1": 1.0,
+          "recall@3": 1.0,
+          "precision@3": 0.3333,
+          "hit@3": 1.0,
+          "recall@5": 1.0,
+          "precision@5": 0.2,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.1,
+          "hit@10": 1.0
+        },
+        "configuration": {
+          "mrr": 0.8,
+          "recall@1": 0.3,
+          "precision@1": 0.6,
+          "hit@1": 0.6,
+          "recall@3": 0.8,
+          "precision@3": 0.6,
+          "hit@3": 1.0,
+          "recall@5": 0.8,
+          "precision@5": 0.4,
+          "hit@5": 1.0,
+          "recall@10": 0.8,
+          "precision@10": 0.2,
+          "hit@10": 1.0
+        },
+        "cross_file": {
+          "mrr": 1.0,
+          "recall@1": 0.4375,
+          "precision@1": 1.0,
+          "hit@1": 1.0,
+          "recall@3": 0.75,
+          "precision@3": 0.5833,
+          "hit@3": 1.0,
+          "recall@5": 0.75,
+          "precision@5": 0.35,
+          "hit@5": 1.0,
+          "recall@10": 0.75,
+          "precision@10": 0.175,
+          "hit@10": 1.0
+        },
+        "function_location": {
+          "mrr": 1.0,
+          "recall@1": 1.0,
+          "precision@1": 1.0,
+          "hit@1": 1.0,
+          "recall@3": 1.0,
+          "precision@3": 0.3333,
+          "hit@3": 1.0,
+          "recall@5": 1.0,
+          "precision@5": 0.2,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.1,
+          "hit@10": 1.0
+        },
+        "keyword_identifier": {
+          "mrr": 1.0,
+          "recall@1": 1.0,
+          "precision@1": 1.0,
+          "hit@1": 1.0,
+          "recall@3": 1.0,
+          "precision@3": 0.4762,
+          "hit@3": 1.0,
+          "recall@5": 1.0,
+          "precision@5": 0.2857,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.1429,
+          "hit@10": 1.0
+        },
+        "semantic": {
+          "mrr": 0.7955,
+          "recall@1": 0.5682,
+          "precision@1": 0.7273,
+          "hit@1": 0.7273,
+          "recall@3": 0.6818,
+          "precision@3": 0.3636,
+          "hit@3": 0.8182,
+          "recall@5": 0.8182,
+          "precision@5": 0.2909,
+          "hit@5": 0.9091,
+          "recall@10": 0.8636,
+          "precision@10": 0.1545,
+          "hit@10": 0.9091
+        }
+      },
+      "by_repository": {
+        "shopapi": {
+          "mrr": 0.96,
+          "recall@1": 0.76,
+          "precision@1": 0.92,
+          "hit@1": 0.92,
+          "recall@3": 0.86,
+          "precision@3": 0.44,
+          "hit@3": 1.0,
+          "recall@5": 0.9,
+          "precision@5": 0.288,
+          "hit@5": 1.0,
+          "recall@10": 0.9,
+          "precision@10": 0.144,
+          "hit@10": 1.0
+        },
+        "taskboard": {
+          "mrr": 0.776,
+          "recall@1": 0.5938,
+          "precision@1": 0.6875,
+          "hit@1": 0.6875,
+          "recall@3": 0.8125,
+          "precision@3": 0.375,
+          "hit@3": 0.8125,
+          "recall@5": 0.8438,
+          "precision@5": 0.25,
+          "hit@5": 0.875,
+          "recall@10": 0.9375,
+          "precision@10": 0.1375,
+          "hit@10": 0.9375
+        }
+      },
+      "latency_ms": {
+        "mean": 49.57,
+        "p50": 49.22,
+        "p95": 55.69,
+        "stages_mean": {
+          "exact": 3.57,
+          "keyword": 1.48,
+          "semantic": 18.7,
+          "fusion": 1.84,
+          "validation": 22.93,
+          "total": 49.45
+        }
+      },
+      "fallbacks": 0
+    },
+    "hybrid+rerank": {
+      "mode": "hybrid",
+      "rerank": true,
+      "metrics": {
+        "mrr": 0.8374,
+        "recall@1": 0.6402,
+        "precision@1": 0.7561,
+        "hit@1": 0.7561,
+        "recall@3": 0.8049,
+        "precision@3": 0.3984,
+        "hit@3": 0.9024,
+        "recall@5": 0.8659,
+        "precision@5": 0.2634,
+        "hit@5": 0.9512,
+        "recall@10": 0.9268,
+        "precision@10": 0.1439,
+        "hit@10": 0.9756
+      },
+      "by_category": {
+        "api_endpoint": {
+          "mrr": 0.6833,
+          "recall@1": 0.6,
+          "precision@1": 0.6,
+          "hit@1": 0.6,
+          "recall@3": 0.6,
+          "precision@3": 0.2,
+          "hit@3": 0.6,
+          "recall@5": 0.8,
+          "precision@5": 0.16,
+          "hit@5": 0.8,
+          "recall@10": 1.0,
+          "precision@10": 0.1,
+          "hit@10": 1.0
+        },
+        "class_location": {
+          "mrr": 0.875,
+          "recall@1": 0.75,
+          "precision@1": 0.75,
+          "hit@1": 0.75,
+          "recall@3": 1.0,
+          "precision@3": 0.3333,
+          "hit@3": 1.0,
+          "recall@5": 1.0,
+          "precision@5": 0.2,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.1,
+          "hit@10": 1.0
+        },
+        "configuration": {
+          "mrr": 0.8,
+          "recall@1": 0.3,
+          "precision@1": 0.6,
+          "hit@1": 0.6,
+          "recall@3": 0.8,
+          "precision@3": 0.6,
+          "hit@3": 1.0,
+          "recall@5": 0.8,
+          "precision@5": 0.4,
+          "hit@5": 1.0,
+          "recall@10": 0.9,
+          "precision@10": 0.22,
+          "hit@10": 1.0
+        },
+        "cross_file": {
+          "mrr": 0.875,
+          "recall@1": 0.375,
+          "precision@1": 0.75,
+          "hit@1": 0.75,
+          "recall@3": 0.625,
+          "precision@3": 0.5,
+          "hit@3": 1.0,
+          "recall@5": 0.75,
+          "precision@5": 0.35,
+          "hit@5": 1.0,
+          "recall@10": 0.75,
+          "precision@10": 0.175,
+          "hit@10": 1.0
+        },
+        "function_location": {
+          "mrr": 0.8667,
+          "recall@1": 0.8,
+          "precision@1": 0.8,
+          "hit@1": 0.8,
+          "recall@3": 1.0,
+          "precision@3": 0.3333,
+          "hit@3": 1.0,
+          "recall@5": 1.0,
+          "precision@5": 0.2,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.1,
+          "hit@10": 1.0
+        },
+        "keyword_identifier": {
+          "mrr": 1.0,
+          "recall@1": 1.0,
+          "precision@1": 1.0,
+          "hit@1": 1.0,
+          "recall@3": 1.0,
+          "precision@3": 0.4762,
+          "hit@3": 1.0,
+          "recall@5": 1.0,
+          "precision@5": 0.2857,
+          "hit@5": 1.0,
+          "recall@10": 1.0,
+          "precision@10": 0.1429,
+          "hit@10": 1.0
+        },
+        "semantic": {
+          "mrr": 0.7803,
+          "recall@1": 0.5682,
+          "precision@1": 0.7273,
+          "hit@1": 0.7273,
+          "recall@3": 0.6818,
+          "precision@3": 0.3636,
+          "hit@3": 0.8182,
+          "recall@5": 0.7727,
+          "precision@5": 0.2545,
+          "hit@5": 0.9091,
+          "recall@10": 0.8636,
+          "precision@10": 0.1545,
+          "hit@10": 0.9091
+        }
+      },
+      "by_repository": {
+        "shopapi": {
+          "mrr": 0.92,
+          "recall@1": 0.71,
+          "precision@1": 0.84,
+          "hit@1": 0.84,
+          "recall@3": 0.86,
+          "precision@3": 0.44,
+          "hit@3": 1.0,
+          "recall@5": 0.88,
+          "precision@5": 0.272,
+          "hit@5": 1.0,
+          "recall@10": 0.92,
+          "precision@10": 0.148,
+          "hit@10": 1.0
+        },
+        "taskboard": {
+          "mrr": 0.7083,
+          "recall@1": 0.5312,
+          "precision@1": 0.625,
+          "hit@1": 0.625,
+          "recall@3": 0.7188,
+          "precision@3": 0.3333,
+          "hit@3": 0.75,
+          "recall@5": 0.8438,
+          "precision@5": 0.25,
+          "hit@5": 0.875,
+          "recall@10": 0.9375,
+          "precision@10": 0.1375,
+          "hit@10": 0.9375
+        }
+      },
+      "latency_ms": {
+        "mean": 51.86,
+        "p50": 51.11,
+        "p95": 59.53,
+        "stages_mean": {
+          "exact": 2.87,
+          "keyword": 1.25,
+          "semantic": 16.91,
+          "fusion": 1.41,
+          "validation": 20.05,
+          "rerank": 8.32,
+          "total": 51.74
+        }
+      },
+      "fallbacks": 0
+    }
+  },
+  "failures": [
+    {
+      "id": "py-fn-hash",
+      "category": "function_location",
+      "query": "Where are user passwords hashed before they are stored?",
+      "expected": [
+        "app/auth/security.py hash_password"
+      ],
+      "first_relevant_rank": {
+        "keyword": null,
+        "semantic": 1,
+        "hybrid": 1,
+        "hybrid+rerank": 1
+      },
+      "hybrid_rerank_top3": [
+        "app/auth/security.py:14-18 hash_password",
+        "app/auth/security.py:21-26 verify_password",
+        "app/db/models.py:7-15 User"
+      ]
+    },
+    {
+      "id": "py-sem-validate",
+      "category": "semantic",
+      "query": "Which code validates API request data?",
+      "expected": [
+        "app/schemas.py ProductCreate",
+        "app/schemas.py RegisterRequest"
+      ],
+      "first_relevant_rank": {
+        "keyword": 7,
+        "semantic": 1,
+        "hybrid": 1,
+        "hybrid+rerank": 1
+      },
+      "hybrid_rerank_top3": [
+        "app/schemas.py:13-23 RegisterRequest",
+        "app/api/auth_routes.py:1-8",
+        "app/api/auth_routes.py:25-31 register"
+      ]
+    },
+    {
+      "id": "ts-fn-overdue",
+      "category": "function_location",
+      "query": "check whether a task is past its due date",
+      "expected": [
+        "client/src/utils/date.ts isOverdue"
+      ],
+      "first_relevant_rank": {
+        "keyword": 8,
+        "semantic": 1,
+        "hybrid": 1,
+        "hybrid+rerank": 3
+      },
+      "hybrid_rerank_top3": [
+        "client/src/utils/date.ts:3-5 formatDueDate",
+        "client/src/components/TaskList.tsx:5-5 Task",
+        "client/src/utils/date.ts:7-12 isOverdue"
+      ]
+    },
+    {
+      "id": "ts-cls-tasks",
+      "category": "class_location",
+      "query": "class that manages tasks in the database",
+      "expected": [
+        "server/services/taskService.ts TaskService"
+      ],
+      "first_relevant_rank": {
+        "keyword": 5,
+        "semantic": 1,
+        "hybrid": 1,
+        "hybrid+rerank": 1
+      },
+      "hybrid_rerank_top3": [
+        "server/services/taskService.ts:3-24 TaskService",
+        "client/src/components/TaskList.tsx:7-30 TaskList",
+        "server/routes/tasks.ts:1-32"
+      ]
+    },
+    {
+      "id": "ts-api-delete",
+      "category": "api_endpoint",
+      "query": "endpoint to delete a task",
+      "expected": [
+        "server/routes/tasks.ts"
+      ],
+      "first_relevant_rank": {
+        "keyword": 2,
+        "semantic": 2,
+        "hybrid": 2,
+        "hybrid+rerank": 4
+      },
+      "hybrid_rerank_top3": [
+        "server/services/taskService.ts:3-24 TaskService",
+        "client/src/components/TaskList.tsx:5-5 Task",
+        "client/src/components/TaskList.tsx:7-30 TaskList"
+      ]
+    },
+    {
+      "id": "ts-api-signup",
+      "category": "api_endpoint",
+      "query": "route that registers a new account",
+      "expected": [
+        "server/routes/users.ts"
+      ],
+      "first_relevant_rank": {
+        "keyword": null,
+        "semantic": 1,
+        "hybrid": 6,
+        "hybrid+rerank": 6
+      },
+      "hybrid_rerank_top3": [
+        "server/routes/tasks.ts:1-32",
+        "server/services/userModel.ts:9-14",
+        "server/db.ts:5-17 connectDatabase"
+      ]
+    },
+    {
+      "id": "ts-x-auth",
+      "category": "cross_file",
+      "query": "how are API requests authenticated between the client and the server",
+      "expected": [
+        "server/middleware/auth.ts requireAuth",
+        "client/src/api/client.ts apiFetch"
+      ],
+      "first_relevant_rank": {
+        "keyword": 6,
+        "semantic": 1,
+        "hybrid": 1,
+        "hybrid+rerank": 1
+      },
+      "hybrid_rerank_top3": [
+        "client/src/api/client.ts:18-37 apiFetch",
+        "server/index.ts:1-20",
+        "client/src/api/client.ts:1-1"
+      ]
+    },
+    {
+      "id": "ts-sem-validate",
+      "category": "semantic",
+      "query": "Which code validates API request data?",
+      "expected": [
+        "server/middleware/validate.ts validateBody"
+      ],
+      "first_relevant_rank": {
+        "keyword": null,
+        "semantic": 1,
+        "hybrid": 2,
+        "hybrid+rerank": 3
+      },
+      "hybrid_rerank_top3": [
+        "client/src/api/client.ts:18-37 apiFetch",
+        "server/middleware/validate.ts:1-1",
+        "server/middleware/validate.ts:6-23 validateBody"
+      ]
+    },
+    {
+      "id": "ts-sem-logout",
+      "category": "semantic",
+      "query": "log the user out when the server responds unauthorized",
+      "expected": [
+        "client/src/api/client.ts apiFetch",
+        "client/src/api/client.ts logout"
+      ],
+      "first_relevant_rank": {
+        "keyword": null,
+        "semantic": 1,
+        "hybrid": null,
+        "hybrid+rerank": null
+      },
+      "hybrid_rerank_top3": [
+        "server/routes/users.ts:14-34",
+        "server/services/userModel.ts:3-7 User",
+        "server/middleware/auth.ts:9-22 requireAuth"
+      ]
+    },
+    {
+      "id": "ts-sem-done",
+      "category": "semantic",
+      "query": "mark a task as done",
+      "expected": [
+        "server/services/taskService.ts TaskService.completeTask",
+        "server/routes/tasks.ts"
+      ],
+      "first_relevant_rank": {
+        "keyword": 5,
+        "semantic": 4,
+        "hybrid": 4,
+        "hybrid+rerank": 4
+      },
+      "hybrid_rerank_top3": [
+        "client/src/components/TaskList.tsx:7-30 TaskList",
+        "client/src/components/TaskList.tsx:5-5 Task",
+        "server/services/taskModel.ts:3-10 Task"
+      ]
+    }
+  ],
+  "per_query": {
+    "py-fn-jwt": {
+      "keyword": {
+        "first_relevant_rank": 3,
+        "top3": [
+          "app/utils/rate_limit.py:5-23 RateLimiter",
+          "app/schemas.py:31-50 ProductCreate",
+          "app/auth/security.py:33-44 create_access_token"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:33-44 create_access_token",
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/schemas.py:26-28 TokenResponse"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:33-44 create_access_token",
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/config.py:18-30 get_settings"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:33-44 create_access_token",
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/config.py:18-30 get_settings"
+        ]
+      }
+    },
+    "py-fn-hash": {
+      "keyword": {
+        "first_relevant_rank": null,
+        "top3": [
+          "README.md:1-8",
+          "app/images/preprocess.py:1-9",
+          "app/auth/security.py:21-26 verify_password"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:14-18 hash_password",
+          "app/auth/security.py:1-11",
+          "app/auth/security.py:21-26 verify_password"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:14-18 hash_password",
+          "app/auth/security.py:21-26 verify_password",
+          "app/auth/service.py:1-2"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:14-18 hash_password",
+          "app/auth/security.py:21-26 verify_password",
+          "app/db/models.py:7-15 User"
+        ]
+      }
+    },
+    "py-fn-decode": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/auth/security.py:33-44 create_access_token",
+          "app/config.py:7-15 Settings"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/auth/security.py:33-44 create_access_token",
+          "app/auth/security.py:21-26 verify_password"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/auth/security.py:33-44 create_access_token",
+          "app/api/auth_routes.py:11-22 login"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/auth/security.py:33-44 create_access_token",
+          "app/schemas.py:26-28 TokenResponse"
+        ]
+      }
+    },
+    "py-cls-auth": {
+      "keyword": {
+        "first_relevant_rank": 3,
+        "top3": [
+          "app/db/models.py:7-15 User",
+          "app/db/models.py:28-35 Order",
+          "app/auth/service.py:9-29 AuthService"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/service.py:9-29 AuthService",
+          "app/db/models.py:7-15 User",
+          "app/auth/service.py:5-6 InvalidCredentials"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/service.py:9-29 AuthService",
+          "app/db/models.py:7-15 User",
+          "app/auth/service.py:5-6 InvalidCredentials"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "app/db/models.py:7-15 User",
+          "app/auth/service.py:9-29 AuthService",
+          "app/auth/service.py:5-6 InvalidCredentials"
+        ]
+      }
+    },
+    "py-cls-throttle": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/utils/rate_limit.py:5-23 RateLimiter",
+          "app/schemas.py:8-10 LoginRequest",
+          "app/schemas.py:26-28 TokenResponse"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/utils/rate_limit.py:5-23 RateLimiter",
+          "app/utils/rate_limit.py:1-2",
+          "app/schemas.py:13-23 RegisterRequest"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/utils/rate_limit.py:5-23 RateLimiter",
+          "app/schemas.py:13-23 RegisterRequest",
+          "app/config.py:7-15 Settings"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/utils/rate_limit.py:5-23 RateLimiter",
+          "app/schemas.py:13-23 RegisterRequest",
+          "app/config.py:7-15 Settings"
+        ]
+      }
+    },
+    "py-cls-order": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/db/models.py:28-35 Order",
+          "app/db/models.py:7-15 User",
+          "README.md:1-8"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/db/models.py:28-35 Order",
+          "app/db/models.py:7-15 User",
+          "app/db/models.py:1-4"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/db/models.py:28-35 Order",
+          "app/db/models.py:7-15 User",
+          "app/schemas.py:13-23 RegisterRequest"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/db/models.py:28-35 Order",
+          "app/db/models.py:7-15 User",
+          "app/schemas.py:13-23 RegisterRequest"
+        ]
+      }
+    },
+    "py-api-login": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/auth_routes.py:11-22 login",
+          "app/schemas.py:8-10 LoginRequest",
+          "app/auth/service.py:9-29 AuthService"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/auth_routes.py:11-22 login",
+          "app/schemas.py:8-10 LoginRequest",
+          "app/auth/service.py:9-29 AuthService"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/auth_routes.py:11-22 login",
+          "app/schemas.py:8-10 LoginRequest",
+          "app/auth/service.py:9-29 AuthService"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/auth_routes.py:11-22 login",
+          "app/schemas.py:8-10 LoginRequest",
+          "app/db/models.py:7-15 User"
+        ]
+      }
+    },
+    "py-api-product": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/product_routes.py:16-22 create_product",
+          "app/api/product_routes.py:25-30 get_product",
+          "app/api/product_routes.py:33-40 upload_product_image"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/product_routes.py:16-22 create_product",
+          "app/api/product_routes.py:1-8",
+          "app/api/product_routes.py:25-30 get_product"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/product_routes.py:16-22 create_product",
+          "app/api/product_routes.py:1-8",
+          "app/api/product_routes.py:25-30 get_product"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/product_routes.py:16-22 create_product",
+          "app/api/product_routes.py:1-8",
+          "app/api/product_routes.py:25-30 get_product"
+        ]
+      }
+    },
+    "py-api-upload": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/product_routes.py:33-40 upload_product_image",
+          "app/images/preprocess.py:36-41 save_product_image",
+          "app/api/product_routes.py:1-8"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/product_routes.py:33-40 upload_product_image",
+          "app/images/preprocess.py:36-41 save_product_image",
+          "app/api/product_routes.py:1-8"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/product_routes.py:33-40 upload_product_image",
+          "app/images/preprocess.py:36-41 save_product_image",
+          "app/api/product_routes.py:1-8"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/product_routes.py:33-40 upload_product_image",
+          "app/images/preprocess.py:36-41 save_product_image",
+          "app/api/product_routes.py:1-8"
+        ]
+      }
+    },
+    "py-cfg-db": {
+      "keyword": {
+        "first_relevant_rank": 3,
+        "top3": [
+          "README.md:1-8",
+          "app/db/session.py:10-20 init_engine",
+          "app/config.py:7-15 Settings"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/config.py:7-15 Settings",
+          "app/config.py:18-30 get_settings",
+          "app/db/session.py:10-20 init_engine"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/config.py:7-15 Settings",
+          "app/config.py:18-30 get_settings",
+          "app/db/session.py:10-20 init_engine"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/config.py:7-15 Settings",
+          "app/config.py:18-30 get_settings",
+          "app/db/session.py:10-20 init_engine"
+        ]
+      }
+    },
+    "py-cfg-ttl": {
+      "keyword": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "app/utils/rate_limit.py:5-23 RateLimiter",
+          "app/auth/security.py:33-44 create_access_token",
+          "app/auth/security.py:47-58 decode_access_token"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/auth/security.py:33-44 create_access_token",
+          "app/auth/security.py:21-26 verify_password"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/auth/security.py:33-44 create_access_token",
+          "app/api/auth_routes.py:11-22 login"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/auth/security.py:33-44 create_access_token",
+          "app/api/auth_routes.py:11-22 login"
+        ]
+      }
+    },
+    "py-cfg-env": {
+      "keyword": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "app/config.py:1-4",
+          "app/config.py:18-30 get_settings",
+          "app/auth/service.py:1-2"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "app/config.py:1-4",
+          "app/config.py:18-30 get_settings",
+          "app/config.py:7-15 Settings"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "app/config.py:1-4",
+          "app/config.py:18-30 get_settings",
+          "app/auth/service.py:9-29 AuthService"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "app/config.py:1-4",
+          "app/config.py:18-30 get_settings",
+          "app/auth/service.py:9-29 AuthService"
+        ]
+      }
+    },
+    "py-x-login": {
+      "keyword": {
+        "first_relevant_rank": 3,
+        "top3": [
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/api/auth_routes.py:1-8",
+          "app/api/auth_routes.py:11-22 login"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/auth_routes.py:11-22 login",
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/auth/security.py:33-44 create_access_token"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/auth_routes.py:11-22 login",
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/auth/security.py:33-44 create_access_token"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "app/auth/security.py:47-58 decode_access_token",
+          "app/api/auth_routes.py:11-22 login",
+          "app/auth/security.py:33-44 create_access_token"
+        ]
+      }
+    },
+    "py-x-image": {
+      "keyword": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "README.md:1-8",
+          "app/images/preprocess.py:36-41 save_product_image",
+          "app/api/product_routes.py:33-40 upload_product_image"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/product_routes.py:33-40 upload_product_image",
+          "app/images/preprocess.py:36-41 save_product_image",
+          "app/api/product_routes.py:1-8"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/product_routes.py:33-40 upload_product_image",
+          "app/images/preprocess.py:36-41 save_product_image",
+          "app/api/product_routes.py:1-8"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/product_routes.py:33-40 upload_product_image",
+          "app/images/preprocess.py:36-41 save_product_image",
+          "app/api/product_routes.py:1-8"
+        ]
+      }
+    },
+    "py-x-startup": {
+      "keyword": {
+        "first_relevant_rank": 3,
+        "top3": [
+          "app/auth/service.py:5-6 InvalidCredentials",
+          "app/config.py:1-4",
+          "app/main.py:7-17 create_app"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/main.py:7-17 create_app",
+          "app/main.py:20-20",
+          "app/config.py:1-4"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/main.py:7-17 create_app",
+          "app/config.py:1-4",
+          "app/auth/service.py:9-29 AuthService"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/main.py:7-17 create_app",
+          "app/config.py:1-4",
+          "app/auth/service.py:9-29 AuthService"
+        ]
+      }
+    },
+    "py-kw-verify": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:21-26 verify_password",
+          "app/auth/service.py:1-2",
+          "app/auth/service.py:9-29 AuthService"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:21-26 verify_password",
+          "app/auth/service.py:9-29 AuthService",
+          "app/auth/service.py:5-6 InvalidCredentials"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:21-26 verify_password",
+          "app/auth/service.py:9-29 AuthService",
+          "app/auth/service.py:1-2"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/security.py:21-26 verify_password",
+          "app/auth/service.py:9-29 AuthService",
+          "app/auth/service.py:1-2"
+        ]
+      }
+    },
+    "py-kw-importer": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/ingestion/importer.py:11-33 RepositoryImporter",
+          "app/ingestion/importer.py:1-8"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/ingestion/importer.py:11-33 RepositoryImporter",
+          "app/ingestion/importer.py:1-8",
+          "README.md:1-8"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/ingestion/importer.py:11-33 RepositoryImporter",
+          "app/ingestion/importer.py:1-8",
+          "README.md:1-8"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/ingestion/importer.py:11-33 RepositoryImporter",
+          "app/ingestion/importer.py:1-8",
+          "README.md:1-8"
+        ]
+      }
+    },
+    "py-kw-session": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/db/session.py:1-7",
+          "app/db/session.py:23-29 get_session",
+          "app/db/session.py:10-20 init_engine"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/db/session.py:23-29 get_session",
+          "app/db/session.py:1-7",
+          "app/db/session.py:10-20 init_engine"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/db/session.py:23-29 get_session",
+          "app/db/session.py:1-7",
+          "app/db/session.py:10-20 init_engine"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/db/session.py:23-29 get_session",
+          "app/db/session.py:1-7",
+          "app/db/session.py:10-20 init_engine"
+        ]
+      }
+    },
+    "py-kw-invalid": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/service.py:5-6 InvalidCredentials",
+          "app/api/auth_routes.py:1-8",
+          "app/auth/service.py:9-29 AuthService"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/service.py:5-6 InvalidCredentials",
+          "app/auth/service.py:9-29 AuthService",
+          "app/auth/security.py:21-26 verify_password"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/service.py:5-6 InvalidCredentials",
+          "app/auth/service.py:9-29 AuthService",
+          "app/api/auth_routes.py:11-22 login"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/auth/service.py:5-6 InvalidCredentials",
+          "app/auth/service.py:9-29 AuthService",
+          "app/api/auth_routes.py:11-22 login"
+        ]
+      }
+    },
+    "py-sem-image": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/images/preprocess.py:12-18 resize_image",
+          "app/images/preprocess.py:21-22 to_grayscale",
+          "app/images/preprocess.py:36-41 save_product_image"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/images/preprocess.py:30-33 preprocess_for_model",
+          "app/images/preprocess.py:1-9",
+          "app/images/preprocess.py:12-18 resize_image"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/images/preprocess.py:30-33 preprocess_for_model",
+          "app/images/preprocess.py:12-18 resize_image",
+          "app/images/preprocess.py:1-9"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/images/preprocess.py:12-18 resize_image",
+          "app/images/preprocess.py:36-41 save_product_image",
+          "app/images/preprocess.py:30-33 preprocess_for_model"
+        ]
+      }
+    },
+    "py-sem-dbinit": {
+      "keyword": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "README.md:1-8",
+          "app/db/session.py:10-20 init_engine",
+          "app/main.py:7-17 create_app"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/db/session.py:10-20 init_engine",
+          "app/db/session.py:1-7",
+          "app/db/models.py:1-4"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/db/session.py:10-20 init_engine",
+          "app/config.py:7-15 Settings",
+          "app/config.py:18-30 get_settings"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/db/session.py:10-20 init_engine",
+          "app/config.py:7-15 Settings",
+          "app/config.py:18-30 get_settings"
+        ]
+      }
+    },
+    "py-sem-validate": {
+      "keyword": {
+        "first_relevant_rank": 7,
+        "top3": [
+          "app/auth/security.py:29-30 _b64",
+          "app/images/preprocess.py:30-33 preprocess_for_model",
+          "app/images/preprocess.py:36-41 save_product_image"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/schemas.py:13-23 RegisterRequest",
+          "app/api/auth_routes.py:25-31 register",
+          "app/auth/security.py:47-58 decode_access_token"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/schemas.py:13-23 RegisterRequest",
+          "app/api/auth_routes.py:25-31 register",
+          "app/api/auth_routes.py:1-8"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/schemas.py:13-23 RegisterRequest",
+          "app/api/auth_routes.py:1-8",
+          "app/api/auth_routes.py:25-31 register"
+        ]
+      }
+    },
+    "py-sem-loginerr": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/auth_routes.py:11-22 login",
+          "app/schemas.py:8-10 LoginRequest",
+          "app/api/auth_routes.py:1-8"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "app/schemas.py:8-10 LoginRequest",
+          "app/auth/service.py:5-6 InvalidCredentials",
+          "app/auth/service.py:9-29 AuthService"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/auth_routes.py:11-22 login",
+          "app/schemas.py:8-10 LoginRequest",
+          "app/api/auth_routes.py:1-8"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/api/auth_routes.py:11-22 login",
+          "app/schemas.py:8-10 LoginRequest",
+          "app/api/auth_routes.py:1-8"
+        ]
+      }
+    },
+    "py-sem-ingest": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/ingestion/importer.py:11-33 RepositoryImporter",
+          "app/ingestion/importer.py:1-8"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/ingestion/importer.py:11-33 RepositoryImporter",
+          "app/ingestion/importer.py:1-8",
+          "README.md:1-8"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/ingestion/importer.py:11-33 RepositoryImporter",
+          "app/ingestion/importer.py:1-8",
+          "README.md:1-8"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/ingestion/importer.py:11-33 RepositoryImporter",
+          "app/ingestion/importer.py:1-8",
+          "README.md:1-8"
+        ]
+      }
+    },
+    "py-sem-reset": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/tasks/email.py:13-20 send_password_reset_email",
+          "app/tasks/email.py:1-10",
+          "README.md:1-8"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/tasks/email.py:13-20 send_password_reset_email",
+          "app/tasks/email.py:1-10",
+          "app/api/auth_routes.py:11-22 login"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/tasks/email.py:13-20 send_password_reset_email",
+          "app/tasks/email.py:1-10",
+          "app/api/auth_routes.py:11-22 login"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "app/tasks/email.py:13-20 send_password_reset_email",
+          "app/tasks/email.py:1-10",
+          "app/auth/security.py:14-18 hash_password"
+        ]
+      }
+    },
+    "ts-fn-sign": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/routes/users.ts:10-12 signToken",
+          "server/routes/users.ts:1-8",
+          "server/middleware/auth.ts:9-22 requireAuth"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/routes/users.ts:10-12 signToken",
+          "server/middleware/auth.ts:9-22 requireAuth",
+          "server/services/userModel.ts:3-7 User"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/routes/users.ts:10-12 signToken",
+          "server/middleware/auth.ts:9-22 requireAuth",
+          "server/services/userModel.ts:3-7 User"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/routes/users.ts:10-12 signToken",
+          "server/services/userModel.ts:3-7 User",
+          "server/middleware/auth.ts:9-22 requireAuth"
+        ]
+      }
+    },
+    "ts-fn-overdue": {
+      "keyword": {
+        "first_relevant_rank": 8,
+        "top3": [
+          "server/services/taskModel.ts:3-10 Task",
+          "client/src/components/TaskList.tsx:5-5 Task",
+          "client/src/components/TaskList.tsx:1-3"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "client/src/utils/date.ts:7-12 isOverdue",
+          "client/src/utils/date.ts:3-5 formatDueDate",
+          "client/src/components/TaskList.tsx:5-5 Task"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "client/src/utils/date.ts:7-12 isOverdue",
+          "client/src/utils/date.ts:3-5 formatDueDate",
+          "client/src/components/TaskList.tsx:5-5 Task"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 3,
+        "top3": [
+          "client/src/utils/date.ts:3-5 formatDueDate",
+          "client/src/components/TaskList.tsx:5-5 Task",
+          "client/src/utils/date.ts:7-12 isOverdue"
+        ]
+      }
+    },
+    "ts-cls-tasks": {
+      "keyword": {
+        "first_relevant_rank": 5,
+        "top3": [
+          "server/index.ts:1-20",
+          "client/src/components/TaskList.tsx:7-30 TaskList",
+          "server/routes/tasks.ts:1-32"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/services/taskService.ts:3-24 TaskService",
+          "server/services/taskModel.ts:12-20",
+          "server/services/taskService.ts:1-1"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/services/taskService.ts:3-24 TaskService",
+          "client/src/components/TaskList.tsx:7-30 TaskList",
+          "server/routes/tasks.ts:1-32"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/services/taskService.ts:3-24 TaskService",
+          "client/src/components/TaskList.tsx:7-30 TaskList",
+          "server/routes/tasks.ts:1-32"
+        ]
+      }
+    },
+    "ts-api-delete": {
+      "keyword": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "server/services/taskService.ts:3-24 TaskService",
+          "server/routes/tasks.ts:1-32",
+          "client/src/components/TaskList.tsx:5-5 Task"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "server/services/taskService.ts:3-24 TaskService",
+          "server/routes/tasks.ts:1-32",
+          "client/src/components/TaskList.tsx:5-5 Task"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "server/services/taskService.ts:3-24 TaskService",
+          "server/routes/tasks.ts:1-32",
+          "client/src/components/TaskList.tsx:5-5 Task"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 4,
+        "top3": [
+          "server/services/taskService.ts:3-24 TaskService",
+          "client/src/components/TaskList.tsx:5-5 Task",
+          "client/src/components/TaskList.tsx:7-30 TaskList"
+        ]
+      }
+    },
+    "ts-api-signup": {
+      "keyword": {
+        "first_relevant_rank": null,
+        "top3": [
+          "client/src/utils/date.ts:7-12 isOverdue",
+          "client/src/utils/date.ts:1-1",
+          "client/src/utils/date.ts:3-5 formatDueDate"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/routes/users.ts:14-34",
+          "server/routes/tasks.ts:1-32",
+          "server/routes/users.ts:1-8"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 6,
+        "top3": [
+          "server/routes/tasks.ts:1-32",
+          "server/services/userModel.ts:9-14",
+          "server/db.ts:5-17 connectDatabase"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 6,
+        "top3": [
+          "server/routes/tasks.ts:1-32",
+          "server/services/userModel.ts:9-14",
+          "server/db.ts:5-17 connectDatabase"
+        ]
+      }
+    },
+    "ts-cfg-port": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/index.ts:1-20",
+          "server/config.ts:9-15",
+          "server/config.ts:1-7 ServerConfig"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/index.ts:1-20",
+          "server/config.ts:1-7 ServerConfig",
+          "server/config.ts:9-15"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/index.ts:1-20",
+          "server/config.ts:1-7 ServerConfig",
+          "server/config.ts:9-15"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/index.ts:1-20",
+          "server/config.ts:1-7 ServerConfig",
+          "server/config.ts:9-15"
+        ]
+      }
+    },
+    "ts-cfg-cors": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/config.ts:1-7 ServerConfig",
+          "README.md:1-5",
+          "server/index.ts:1-20"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/index.ts:1-20",
+          "README.md:1-5",
+          "server/config.ts:9-15"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/index.ts:1-20",
+          "README.md:1-5",
+          "server/config.ts:9-15"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/index.ts:1-20",
+          "README.md:1-5",
+          "server/config.ts:9-15"
+        ]
+      }
+    },
+    "ts-x-auth": {
+      "keyword": {
+        "first_relevant_rank": 6,
+        "top3": [
+          "client/src/api/client.ts:3-7 ApiError",
+          "client/src/api/client.ts:1-1",
+          "client/src/api/client.ts:13-16 logout"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/middleware/auth.ts:9-22 requireAuth",
+          "client/src/api/client.ts:18-37 apiFetch",
+          "server/middleware/auth.ts:5-7 AuthedRequest"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "client/src/api/client.ts:18-37 apiFetch",
+          "server/index.ts:1-20",
+          "server/middleware/auth.ts:9-22 requireAuth"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "client/src/api/client.ts:18-37 apiFetch",
+          "server/index.ts:1-20",
+          "client/src/api/client.ts:1-1"
+        ]
+      }
+    },
+    "ts-kw-requireauth": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/middleware/auth.ts:9-22 requireAuth",
+          "server/index.ts:1-20",
+          "server/middleware/auth.ts:5-7 AuthedRequest"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/middleware/auth.ts:9-22 requireAuth",
+          "server/middleware/auth.ts:5-7 AuthedRequest",
+          "server/routes/users.ts:14-34"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/middleware/auth.ts:9-22 requireAuth",
+          "server/middleware/auth.ts:5-7 AuthedRequest",
+          "server/index.ts:1-20"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/middleware/auth.ts:9-22 requireAuth",
+          "server/index.ts:1-20",
+          "server/middleware/auth.ts:5-7 AuthedRequest"
+        ]
+      }
+    },
+    "ts-kw-debounce": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "client/src/hooks/useDebounce.ts:3-10 useDebounce",
+          "client/src/hooks/useDebounce.ts:1-1",
+          "server/index.ts:1-20"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "client/src/hooks/useDebounce.ts:3-10 useDebounce",
+          "client/src/hooks/useDebounce.ts:1-1",
+          "client/src/api/client.ts:9-11 getToken"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "client/src/hooks/useDebounce.ts:3-10 useDebounce",
+          "client/src/hooks/useDebounce.ts:1-1",
+          "server/index.ts:1-20"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "client/src/hooks/useDebounce.ts:3-10 useDebounce",
+          "client/src/hooks/useDebounce.ts:1-1",
+          "server/index.ts:1-20"
+        ]
+      }
+    },
+    "ts-kw-servicefile": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/services/taskService.ts:1-1",
+          "server/services/taskService.ts:3-24 TaskService",
+          "server/routes/tasks.ts:1-32"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/services/taskService.ts:1-1",
+          "server/services/taskService.ts:3-24 TaskService",
+          "server/services/taskModel.ts:3-10 Task"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/services/taskService.ts:1-1",
+          "server/services/taskService.ts:3-24 TaskService",
+          "server/services/taskModel.ts:3-10 Task"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/services/taskService.ts:3-24 TaskService",
+          "server/services/taskService.ts:1-1",
+          "server/services/taskModel.ts:3-10 Task"
+        ]
+      }
+    },
+    "ts-sem-loginerr": {
+      "keyword": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "client/src/api/client.ts:3-7 ApiError",
+          "client/src/components/LoginForm.tsx:4-36 LoginForm",
+          "server/routes/users.ts:10-12 signToken"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "client/src/components/LoginForm.tsx:4-36 LoginForm",
+          "server/routes/users.ts:10-12 signToken",
+          "server/db.ts:5-17 connectDatabase"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "client/src/components/LoginForm.tsx:4-36 LoginForm",
+          "server/routes/users.ts:10-12 signToken",
+          "server/db.ts:5-17 connectDatabase"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "client/src/components/LoginForm.tsx:4-36 LoginForm",
+          "server/routes/users.ts:10-12 signToken",
+          "client/src/api/client.ts:3-7 ApiError"
+        ]
+      }
+    },
+    "ts-sem-retry": {
+      "keyword": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/db.ts:5-17 connectDatabase",
+          "server/index.ts:1-20"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/db.ts:5-17 connectDatabase",
+          "server/db.ts:1-3",
+          "server/index.ts:1-20"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/db.ts:5-17 connectDatabase",
+          "server/index.ts:1-20",
+          "server/db.ts:1-3"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/db.ts:5-17 connectDatabase",
+          "server/index.ts:1-20",
+          "server/db.ts:1-3"
+        ]
+      }
+    },
+    "ts-sem-validate": {
+      "keyword": {
+        "first_relevant_rank": null,
+        "top3": [
+          "client/src/api/client.ts:18-37 apiFetch",
+          "server/middleware/auth.ts:5-7 AuthedRequest",
+          "server/middleware/validate.ts:1-1"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "server/middleware/validate.ts:6-23 validateBody",
+          "server/middleware/validate.ts:1-1",
+          "server/middleware/validate.ts:3-3 FieldRule"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 2,
+        "top3": [
+          "server/middleware/validate.ts:1-1",
+          "server/middleware/validate.ts:6-23 validateBody",
+          "client/src/api/client.ts:18-37 apiFetch"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 3,
+        "top3": [
+          "client/src/api/client.ts:18-37 apiFetch",
+          "server/middleware/validate.ts:1-1",
+          "server/middleware/validate.ts:6-23 validateBody"
+        ]
+      }
+    },
+    "ts-sem-logout": {
+      "keyword": {
+        "first_relevant_rank": null,
+        "top3": [
+          "server/services/userModel.ts:3-7 User",
+          "server/services/userModel.ts:1-1",
+          "server/index.ts:1-20"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 1,
+        "top3": [
+          "client/src/api/client.ts:13-16 logout",
+          "server/routes/users.ts:14-34",
+          "client/src/components/LoginForm.tsx:4-36 LoginForm"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": null,
+        "top3": [
+          "server/routes/users.ts:14-34",
+          "server/middleware/auth.ts:9-22 requireAuth",
+          "server/routes/users.ts:10-12 signToken"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": null,
+        "top3": [
+          "server/routes/users.ts:14-34",
+          "server/services/userModel.ts:3-7 User",
+          "server/middleware/auth.ts:9-22 requireAuth"
+        ]
+      }
+    },
+    "ts-sem-done": {
+      "keyword": {
+        "first_relevant_rank": 5,
+        "top3": [
+          "client/src/components/TaskList.tsx:5-5 Task",
+          "server/services/taskModel.ts:3-10 Task",
+          "client/src/components/TaskList.tsx:7-30 TaskList"
+        ]
+      },
+      "semantic": {
+        "first_relevant_rank": 4,
+        "top3": [
+          "client/src/components/TaskList.tsx:7-30 TaskList",
+          "client/src/components/TaskList.tsx:5-5 Task",
+          "server/services/taskModel.ts:3-10 Task"
+        ]
+      },
+      "hybrid": {
+        "first_relevant_rank": 4,
+        "top3": [
+          "client/src/components/TaskList.tsx:7-30 TaskList",
+          "client/src/components/TaskList.tsx:5-5 Task",
+          "server/services/taskModel.ts:3-10 Task"
+        ]
+      },
+      "hybrid+rerank": {
+        "first_relevant_rank": 4,
+        "top3": [
+          "client/src/components/TaskList.tsx:7-30 TaskList",
+          "client/src/components/TaskList.tsx:5-5 Task",
+          "server/services/taskModel.ts:3-10 Task"
+        ]
+      }
+    }
+  }
+}
