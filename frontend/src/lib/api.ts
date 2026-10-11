@@ -240,3 +240,169 @@ export function formatBytes(bytes: number): string {
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
+
+// ---- AI chat (Milestone 4) ------------------------------------------------------------------
+
+export type LLMStatus = {
+  provider: string;
+  model: string | null;
+  available: boolean;
+  message: string;
+  capabilities: { streaming: boolean; native_tools: "no" | "advertised" | "yes"; json_output: boolean; usage: boolean } | null;
+  context_length: number | null;
+  configured_context_tokens: number;
+  installed_models: string[];
+  sends_code_off_machine: boolean;
+};
+
+export type Conversation = {
+  id: string;
+  project_id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+};
+
+export type MessageCitation = {
+  evidence_id: string;
+  file_id: number | null;
+  chunk_id: string | null;
+  file_path: string;
+  start_line: number;
+  end_line: number;
+  symbol: string | null;
+  source_revision: string;
+  reference: string;
+};
+
+export type TraceStep = Record<string, unknown>;
+
+export type InvestigationRun = {
+  mode: string;
+  planner: string | null;
+  status: string;
+  tool_call_count: number;
+  llm_request_count: number;
+  evidence_count: number;
+  duration_ms: number | null;
+  trace: TraceStep[];
+};
+
+export type ChatMessage = {
+  id: string;
+  role: "user" | "assistant" | string;
+  content: string;
+  status: "completed" | "generating" | "failed" | "cancelled" | string;
+  mode: "baseline" | "investigation" | null;
+  provider: string | null;
+  model: string | null;
+  error: string | null;
+  warnings: string[];
+  input_tokens: number | null;
+  output_tokens: number | null;
+  analysis_revision: number | null;
+  created_at: string;
+  completed_at: string | null;
+  citations: MessageCitation[];
+  run: InvestigationRun | null;
+};
+
+export type ConversationDetail = {
+  conversation: Conversation;
+  messages: ChatMessage[];
+  project_analysis_revision: number;
+  stale: boolean;
+};
+
+export type ChatMode = "baseline" | "investigation";
+
+export type ChatRequest = {
+  question: string;
+  conversation_id?: string | null;
+  mode: ChatMode;
+  retrieval_mode?: SearchMode | null;
+  file_paths?: string[];
+};
+
+export type ChatResponse = { conversation: Conversation; message: ChatMessage };
+
+/** One Server-Sent Event from `POST /chat/stream`. `type` is the SSE event name. */
+export type ChatEvent = { type: string; data: Record<string, unknown> };
+
+const jsonInit = (method: string, body: unknown, signal?: AbortSignal): RequestInit => ({
+  method,
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(body),
+  signal,
+});
+
+export const chatApi = {
+  llmStatus: (signal?: AbortSignal) => request<LLMStatus>("/api/llm/status", { signal }),
+  conversations: (id: string, signal?: AbortSignal) =>
+    request<Conversation[]>(`${projectPath(id)}/conversations`, { signal }),
+  createConversation: (id: string, title?: string) =>
+    request<Conversation>(`${projectPath(id)}/conversations`, jsonInit("POST", { title: title ?? null })),
+  conversation: (id: string, conversationId: string, signal?: AbortSignal) =>
+    request<ConversationDetail>(
+      `${projectPath(id)}/conversations/${encodeURIComponent(conversationId)}`,
+      { signal },
+    ),
+  renameConversation: (id: string, conversationId: string, title: string) =>
+    request<Conversation>(
+      `${projectPath(id)}/conversations/${encodeURIComponent(conversationId)}`,
+      jsonInit("PATCH", { title }),
+    ),
+  deleteConversation: (id: string, conversationId: string) =>
+    request<void>(`${projectPath(id)}/conversations/${encodeURIComponent(conversationId)}`, {
+      method: "DELETE",
+    }),
+  chat: (id: string, body: ChatRequest, signal?: AbortSignal) =>
+    request<ChatResponse>(`${projectPath(id)}/chat`, jsonInit("POST", body, signal)),
+
+  /** Stream a chat turn. Resolves when the stream ends; aborting the signal cancels the turn. */
+  async streamChat(
+    id: string,
+    body: ChatRequest,
+    onEvent: (event: ChatEvent) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    let response: Response;
+    try {
+      response = await fetch(`${baseUrl}${projectPath(id)}/chat/stream`, jsonInit("POST", body, signal));
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") throw error;
+      throw new ApiError("Cannot reach the CodeAtlas API. Is the backend running?");
+    }
+    if (!response.ok || !response.body) {
+      let message = `Request failed (HTTP ${response.status})`;
+      try {
+        const data = (await response.json()) as { detail?: unknown };
+        if (typeof data.detail === "string") message = data.detail;
+      } catch {
+        // keep the generic message
+      }
+      throw new ApiError(message);
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
+      let split: number;
+      while ((split = buffer.indexOf("\n\n")) >= 0) {
+        const block = buffer.slice(0, split);
+        buffer = buffer.slice(split + 2);
+        let type = "message";
+        const data: string[] = [];
+        for (const line of block.split("\n")) {
+          if (line.startsWith("event: ")) type = line.slice(7);
+          else if (line.startsWith("data: ")) data.push(line.slice(6));
+        }
+        if (data.length) onEvent({ type, data: JSON.parse(data.join("\n")) as Record<string, unknown> });
+      }
+    }
+  },
+};

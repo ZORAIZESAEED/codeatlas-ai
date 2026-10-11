@@ -1,4 +1,4 @@
-# CodeAtlas architecture — Milestones 1–3
+# CodeAtlas architecture — Milestones 1–4
 
 ## Components
 - **Frontend:** Next.js App Router. `src/app/page.tsx` renders a client-side dashboard (`src/components/`):
@@ -22,7 +22,7 @@
   - `project_files` — manifest: project_id (FK), path, language, size_bytes, line_count, content_hash (SHA-256), parser, parse_error; unique `(project_id, path)`.
   - `code_symbols` — project_id (FK), path, name, qualified_name, kind, parent, start_line, end_line, signature, docstring; index `(project_id, path)`.
   - `code_chunks` — project_id (FK), path, chunk_index, start_line, end_line, kind (`symbol`/`module`/`text`), symbol, language, char_count, content_hash; unique `(project_id, path, chunk_index)`. Chunk text is not stored; it is sliced from the workspace file when requested.
-  - Alembic revisions: `0001_initial`, `0002_project_files`, `0003_code_analysis` (all additive after the first).
+  - Alembic revisions: `0001_initial`, `0002_project_files`, `0003_code_analysis`, `0004_search_index`, `0005_conversations` (all additive after the first).
 - **Storage:** imported files live in `<WORKSPACE_DIR>/<project_id>/` (default `backend/data/workspaces`).
 
 ## Import flow
@@ -104,5 +104,48 @@ Any exception before step 6 commits rolls back SQLite and marks the run `failed`
 4. Source validation: the file must be in the manifest and its current text must hash to the indexed content hash. Overlapping ranges in a file keep the best-ranked one.
 5. Optional reranking, then truncate to `limit`. The response carries snippets, citations, warnings, fusion weights, candidate counts and per-stage timings.
 
+## Milestone 4 — AI investigation and chat
+### Components
+- **LLM providers** (`app/services/llm/`): `base.py` holds the provider protocol (`stream`, `status`, `capabilities`, `close`), the messages, tool specs and tool calls, `Usage` (provider-reported only), `LLMError` (typed codes mapped to HTTP status), `CancelToken` (with interrupt callbacks) and `generate()`, which is built on `stream`. `ollama.py` talks NDJSON to `/api/chat`: it always sends `num_ctx`, clamped to the model's context length, parses native `tool_calls`, enforces a wall-clock deadline, and on cancel closes the HTTP client to abort a request still waiting for its first token. `fake.py` is the deterministic, scriptable provider for tests. `registry.py` creates the configured provider; construction makes no network call.
+- **RAG** (`app/services/rag/`):
+  - `evidence.py`: `EvidenceSet` issues `E1…` IDs for verified line ranges (from validated search hits or tool reads). Each record holds project, file ID, path, lines, text, line hash, analysis revision, symbol, chunk ID, retrieval methods and provenance. Ranges already covered are reused.
+  - `prompts.py`: the trusted system prompt and evidence blocks fenced with a per-request random token.
+  - `context.py`: the token budget (estimated at 3 characters per token), with truncation or dropping of evidence.
+  - `citations.py`: citation validation and the lexical support check.
+  - `answer.py`: `AnswerRequest`, `ModelCalls` (request limit, usage sum), retrieval (`initial_retrieval`, `search_evidence` over `hybrid.search`), `generate_answer` (shared by both modes) and `run_baseline`.
+  - `relations.py`: static verification of explicit relationship claims ("`A` calls / invokes / delegates to / imports / returns `B`", plus passive "`B` is called by `A`"). The steps:
+    1. Claims are extracted from sentences whose subject and object are code names (backticked, dotted, snake_case/camelCase or a file path).
+    2. `A` is resolved through `code_symbols`, preferring symbols in files the sentence cites; `imports` claims may also name a file.
+    3. A's definition is parsed with Python `ast` or Tree-sitter (the grammars from `parsing.py`), reading only through the manifest-checked reader. The parse collects calls (callee name, dotted name, receiver), names used without being called, return values, file imports and dynamic call sites: a parameter called as a function, `getattr`/`eval`, a computed callee, `.call`/`.apply`/`.bind`.
+    4. Each claim gets a verdict:
+       - `verified`: the call, import or return is present. A class-qualified target must match a known receiver (`Foo(...)`, `Foo.`, or `self`/`this` within the same class).
+       - `inferred`: the method name matches but the receiver's type is unknown (dynamic dispatch), or `B` is only passed as a value (callback or dependency).
+       - `unverified`: `A` is not a project symbol, there is no parser for the language, or `A` has a dynamic call site that could reach `B`.
+       - `unsupported`: `A` was parsed and contains no matching call, import or return and no dynamic call site.
+    5. With several candidate symbols, the most favourable verdict wins.
+    6. `generate_answer` runs this after citation validation. Sentences are never removed: unsupported ones get a "**Unsupported claim:**" label plus the reason and the analysed range, inferred and unverified ones get a qualifier, and verified ones are unchanged. The checks go into `AnswerResult.relationships`, warnings and the stored run trace (step `relationship_check`).
+- **Investigation** (`app/services/investigation/`): `tools.py` has the six read-only tools, argument validation, de-duplication, and line/evidence/tool-call limits. `controller.py` runs the bounded loop with native and deterministic planners and writes the trace.
+- **Conversations** (`app/services/conversations.py`): project-scoped CRUD, the turn lifecycle (`start_turn` → `finish_turn` / `fail_turn`), bounded history, staleness detection and startup recovery of `generating` rows. **Chat turn** (`app/services/chat.py`): `prepare_turn` (fail-fast checks) and `execute_turn` (run, persist, emit events).
+- **API:** `app/api/llm.py` (`/api/llm/status`, provider factory dependency `app.state.llm_factory` for tests) and `app/api/chat.py` (conversation CRUD, `POST /chat`, `POST /chat/stream`).
+- **Frontend:** `ChatPanel.tsx` (AI Chat tab, kept mounted) contains the conversation list, model status, mode selector, SSE rendering with factual progress steps, a minimal safe Markdown renderer (no raw HTML; code blocks through highlight.js), citation chips and a Sources list that call the workspace's `openFile(path, range)`, the investigation activity panel, Stop and Copy. `src/lib/api.ts` has `chatApi` and an SSE reader over `fetch`.
+
+### Data (`0005_conversations`, additive)
+- `conversations`: id, project_id, title, created_at, updated_at; index `(project_id, updated_at)`.
+- `chat_messages`: id, conversation_id, role, content, status (`generating`/`completed`/`failed`/`cancelled`), mode, provider, model_identifier, error, warnings (JSON), input/output tokens, analysis_revision, created_at, completed_at; index `(conversation_id, created_at)`.
+- `message_citations`: message_id, evidence_id, file_id (FK `project_files`), chunk_id, file_path, start/end line, symbol, source_revision, content_hash, ordinal.
+- `investigation_runs`: conversation_id, user/assistant message IDs, status, mode, planner, tool/model-request/evidence counts, duration, trace (JSON).
+- SQLite foreign keys are not enforced in this app. Conversation rows are deleted explicitly with the conversation, and with the project inside the project-delete transaction.
+
+### Chat flow (`execute_turn`)
+1. `prepare_turn`: project → question/mode/file checks → index exists → conversation belongs to project → `provider.status()`. Nothing is stored if a check fails.
+2. `start_turn` commits the user message, an assistant message in `generating` and a `running` investigation run.
+3. Baseline: `initial_retrieval` → `generate_answer`. Investigation: `initial_retrieval` (smaller limit) → planner loop over tools → `generate_answer`.
+4. `generate_answer`: assemble the context → stream the model (`answer_delta`) → validate citations → assess support.
+5. `finish_turn` stores the answer, citations, usage and trace in one transaction. `LLMError` / `ChatError` / other errors lead to `fail_turn` (`failed` or `cancelled`, empty content).
+6. SSE: the turn runs in a worker thread with its own session and pushes events into a queue. The async generator relays them and checks for client disconnects; closing it cancels the turn.
+
+### Trust boundaries
+Trusted text is the system and planner prompts and the tool definitions. The user question is the request. Repository text, tool results and earlier assistant answers are data: repository text is fenced as untrusted, and earlier answers are summarized as context, not evidence. Tool arguments are validated in code, independently of who produced them. Tools are bound to one project, read only manifest files through `read_project_file`, never execute code, run shell commands, use the network or read the environment, and cannot write anything.
+
 ## Not implemented yet
-Source-grounded, LLM-generated answers (M4). Search returns ranked source chunks only.
+Hosted LLM providers (Anthropic/OpenAI adapters need their SDKs), background/multi-process chat workers, and an LLM-as-judge evaluation.

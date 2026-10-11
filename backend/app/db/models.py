@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -150,3 +150,98 @@ class IndexEntry(Base):
     symbol_kind: Mapped[str | None] = mapped_column(String(20), nullable=True)
     language: Mapped[str] = mapped_column(String(30), nullable=False)
     content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+class Conversation(Base):
+    """A repository-specific chat (Milestone 4)."""
+
+    __tablename__ = "conversations"
+    __table_args__ = (Index("ix_conversations_project_updated", "project_id", "updated_at"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    project_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class ChatMessage(Base):
+    """One user question or assistant answer. Assistant rows start as ``generating`` and end as
+    ``completed``, ``failed`` or ``cancelled``; only completed answers are shown as answers or
+    reused as conversation context."""
+
+    __tablename__ = "chat_messages"
+    __table_args__ = (Index("ix_chat_messages_conversation", "conversation_id", "created_at"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    conversation_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False
+    )
+    role: Mapped[str] = mapped_column(String(20), nullable=False)  # user | assistant
+    content: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="completed")
+    mode: Mapped[str | None] = mapped_column(String(20), nullable=True)  # baseline|investigation
+    provider: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    model_identifier: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    error: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    warnings: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON list of strings
+    input_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    output_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Project analysis revision the answer's evidence was read from (staleness check).
+    analysis_revision: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class MessageCitation(Base):
+    """A verified citation of an assistant message: evidence ID -> exact source lines."""
+
+    __tablename__ = "message_citations"
+    __table_args__ = (Index("ix_message_citations_message", "message_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    message_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("chat_messages.id", ondelete="CASCADE"), nullable=False
+    )
+    evidence_id: Mapped[str] = mapped_column(String(10), nullable=False)
+    file_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("project_files.id", ondelete="SET NULL"), nullable=True
+    )
+    chunk_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    file_path: Mapped[str] = mapped_column(String(1024), nullable=False)
+    start_line: Mapped[int] = mapped_column(Integer, nullable=False)
+    end_line: Mapped[int] = mapped_column(Integer, nullable=False)
+    symbol: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    source_revision: Mapped[str] = mapped_column(String(40), nullable=False)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    ordinal: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class InvestigationRun(Base):
+    """What actually ran to produce an answer: mode, counters and the executed-step trace."""
+
+    __tablename__ = "investigation_runs"
+    __table_args__ = (Index("ix_investigation_runs_conversation", "conversation_id"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    conversation_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False
+    )
+    user_message_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("chat_messages.id", ondelete="CASCADE"), nullable=False
+    )
+    assistant_message_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("chat_messages.id", ondelete="CASCADE"), nullable=True
+    )
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="running")
+    mode: Mapped[str] = mapped_column(String(20), nullable=False)
+    planner: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    tool_call_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    llm_request_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    evidence_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    trace: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON list of executed steps
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -250,3 +250,112 @@ class SearchResponse(BaseModel):
     warnings: list[str] = []
     candidate_counts: dict[str, int] = {}
     timings_ms: dict[str, float] = {}
+
+
+class LLMCapabilitiesOut(BaseModel):
+    streaming: bool
+    native_tools: Literal["no", "advertised", "yes"]
+    json_output: bool
+    usage: bool
+
+
+class LLMStatusOut(BaseModel):
+    provider: str
+    model: str | None
+    available: bool
+    message: str
+    capabilities: LLMCapabilitiesOut | None = None
+    context_length: int | None = None
+    configured_context_tokens: int
+    installed_models: list[str] = []
+    sends_code_off_machine: bool = False
+
+
+class ConversationCreate(BaseModel):
+    title: str | None = Field(default=None, max_length=200)
+
+
+class ConversationRename(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+
+
+class ConversationOut(BaseModel):
+    id: str
+    project_id: str
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    message_count: int = 0
+
+    @field_validator("created_at", "updated_at")
+    @classmethod
+    def assume_utc(cls, value: datetime) -> datetime:
+        return ProjectSummary.assume_utc(value)
+
+
+class MessageCitationOut(BaseModel):
+    evidence_id: str
+    file_id: int | None
+    chunk_id: str | None
+    file_path: str
+    start_line: int
+    end_line: int
+    symbol: str | None
+    source_revision: str
+    reference: str
+
+
+class InvestigationRunOut(BaseModel):
+    mode: str
+    planner: str | None
+    status: str
+    tool_call_count: int
+    llm_request_count: int
+    evidence_count: int
+    duration_ms: int | None
+    trace: list[dict] = []
+
+
+class ChatMessageOut(BaseModel):
+    id: str
+    role: str
+    content: str
+    status: str
+    mode: str | None = None
+    provider: str | None = None
+    model: str | None = None
+    error: str | None = None
+    warnings: list[str] = []
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    analysis_revision: int | None = None
+    created_at: datetime
+    completed_at: datetime | None = None
+    citations: list[MessageCitationOut] = []
+    run: InvestigationRunOut | None = None
+
+    @field_validator("created_at", "completed_at")
+    @classmethod
+    def assume_utc(cls, value: datetime | None) -> datetime | None:
+        return ProjectSummary.assume_utc(value)
+
+
+class ConversationDetail(BaseModel):
+    conversation: ConversationOut
+    messages: list[ChatMessageOut]
+    project_analysis_revision: int
+    # Earlier answers were based on an older analysis of the project.
+    stale: bool
+
+
+class ChatRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=2000)
+    conversation_id: str | None = Field(default=None, max_length=36)
+    mode: Literal["baseline", "investigation"] = "investigation"
+    retrieval_mode: Literal["hybrid", "keyword", "semantic"] | None = None
+    file_paths: list[str] = Field(default_factory=list, max_length=5)
+
+
+class ChatResponse(BaseModel):
+    conversation: ConversationOut
+    message: ChatMessageOut

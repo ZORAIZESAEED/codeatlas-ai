@@ -58,6 +58,39 @@ class Settings(BaseSettings):
     search_snippet_max_lines: int = 40
     search_snippet_max_chars: int = 2400
 
+    # Chat models (Milestone 4). Contacted only when a chat request needs them, never at startup.
+    # "ollama" (local) | "fake" (tests only). No model is assumed: set LLM_MODEL explicitly.
+    llm_provider: str = "ollama"
+    llm_model: str | None = None
+    ollama_base_url: str = "http://localhost:11434"
+    llm_temperature: float = 0.1
+    llm_max_output_tokens: int = 2048
+    # Wall-clock limit for one model request (CPU-only machines generate a few tokens/s).
+    llm_request_timeout_seconds: float = 300.0
+    # Prompt + output budget. Sent to Ollama as num_ctx so it never truncates silently.
+    llm_max_context_tokens: int = 8192
+    # Optional pricing (USD per 1M tokens) to estimate cost from reported usage. Unset = no cost.
+    llm_input_cost_per_mtok: float | None = None
+    llm_output_cost_per_mtok: float | None = None
+
+    # Retrieval-augmented answers.
+    rag_search_mode: str = "hybrid"
+    rag_search_limit: int = 8
+    rag_max_evidence: int = 8
+    # Conversation memory sent to the model: recent completed turns, bounded by tokens.
+    chat_history_turns: int = 4
+    chat_history_max_tokens: int = 1200
+    chat_question_max_chars: int = 2000
+
+    # Multi-step investigation limits.
+    investigation_planner: str = "auto"  # auto (native tool calls if verified) | deterministic
+    investigation_max_steps: int = 4
+    investigation_max_tool_calls: int = 10
+    investigation_max_lines_read: int = 800
+    investigation_max_evidence: int = 12
+    investigation_max_llm_requests: int = 5
+    investigation_timeout_seconds: float = 900.0
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

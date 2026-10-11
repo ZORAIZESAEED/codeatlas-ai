@@ -46,9 +46,22 @@ Milestone checklist (history). For the current branch, commit, test results, ope
 - [x] Tests: 224 backend tests (136 existing + 88 new), including startup recovery after a killed run and the older-SQLite FTS path; Ruff; TypeScript check; production build
 - [x] Live verification with `fastapi/full-stack-fastapi-template` and `koajs/koa` in isolated storage (indexing, three modes, citation checks, unchanged reindex, deletion, browser navigation)
 
+## Milestone 4 — AI investigation and chat (branch `feature/milestone-4-ai-investigation`, not merged)
+- [x] Branch created from `main` at `0ff0777` after the baseline checks (224 backend tests, `tsc`, `next build`)
+- [x] LLM provider layer: typed interface (streaming, tools, usage, capabilities, cancellation, deadlines, typed errors), Ollama adapter, fake provider, `/api/llm/status`. Anthropic/OpenAI adapters are not enabled: they need their SDKs (approval pending)
+- [x] Baseline RAG: evidence records bound to line hashes, token-budgeted context, fenced prompts, citation validation (invented, foreign, stale, missing, out-of-range), lexical support check
+- [x] Additive migration `0005_conversations`, tested up/down/up on a copy of the development database (row counts unchanged); conversations, messages, citations and investigation runs with project isolation
+- [x] Bounded investigation: six read-only tools, native and deterministic planners with hand-over on stalled native steps, all limits, de-duplication, trace
+- [x] Streaming (SSE) with factual progress events; cancellation on Stop or disconnect closes the model connection; durable-on-completion persistence; startup recovery
+- [x] Frontend AI Chat tab: conversation history (create/open/rename/delete), model status, mode selector, streamed answers with progress, Markdown, citation chips and Sources that open the code viewer at the lines, investigation activity, Stop, Copy
+- [x] Answer benchmark (16 questions, 10 categories, deterministic checks), baseline vs. investigation
+- [x] Quality review of the recorded false-call answer: static relationship verification (`rag/relations.py`), planner targets calls before imports and records why, prompt rule; regression tests for false, valid, cross-file and dynamic-dispatch claims
+- [x] Tests: provider, RAG, citations, conversations, streaming, investigation and prompt injection (full-suite count in `docs/CURRENT_STATE.md`)
+- [x] Live verification with `qwen2.5:3b` on isolated storage (Python, TypeScript and prompt-injection repositories; browser checks of streaming, citations, reopening, Stop)
+
 ## Next milestones
 - [ ] Structural parsing for more languages (e.g. Go, Rust, Java via Tree-sitter grammars)
 - [ ] Retrieval quality: path-aware weighting of tests/docs/generated files, fusion that does not penalize single-retriever hits, cross-encoder reranking, larger benchmark
 - [ ] Background indexing jobs (cross-process lock) for large repositories
-- [ ] Source-grounded Q&A (M4)
+- [ ] M4 follow-ups: hosted providers (after SDK approval), better citation discipline for small models, LLM-as-judge evaluation alongside the deterministic checks, larger answer benchmark
 - [ ] Possible follow-ups: background import jobs, authenticated/private GitHub imports, branch selection, browsing non-indexed text files

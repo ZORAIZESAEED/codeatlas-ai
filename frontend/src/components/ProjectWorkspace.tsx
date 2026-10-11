@@ -9,15 +9,21 @@ import {
   type Overview,
   type Project,
 } from "@/lib/api";
+import ChatPanel from "./ChatPanel";
 import type { LineRange } from "./CodeViewer";
 import FileExplorer from "./FileExplorer";
 import IndexCard from "./IndexCard";
 import SearchPanel from "./SearchPanel";
 
-type Tab = "overview" | "files" | "search";
+type Tab = "overview" | "files" | "search" | "chat";
 type OpenTarget = { path: string; range: LineRange | null; nonce: number };
 
-const TAB_LABEL: Record<Tab, string> = { overview: "Overview", files: "Files", search: "Search" };
+const TAB_LABEL: Record<Tab, string> = {
+  overview: "Overview",
+  files: "Files",
+  search: "Search",
+  chat: "AI Chat",
+};
 
 export default function ProjectWorkspace({
   project,
@@ -108,7 +114,7 @@ export default function ProjectWorkspace({
       </div>
 
       <div className="tabs" role="tablist">
-        {(["overview", "files", "search"] as const).map((t) => (
+        {(["overview", "files", "search", "chat"] as const).map((t) => (
           <button
             key={t}
             role="tab"
@@ -150,6 +156,10 @@ export default function ProjectWorkspace({
           languages={overview?.languages.map((l) => l.language) ?? project.languages}
           onOpen={openFile}
         />
+      </div>
+      {/* Kept mounted so the conversation and a running answer survive opening a citation. */}
+      <div hidden={tab !== "chat"}>
+        <ChatPanel projectId={project.id} onOpen={openFile} />
       </div>
     </section>
   );

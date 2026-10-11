@@ -2,7 +2,7 @@
 
 > **Authoritative handoff for the next development session.** Read this first, then **verify** every claim below against Git and the source before relying on it (see `CLAUDE.md` → Session protocol). Update this file before finishing substantial work. Record only results that were actually observed.
 
-**Last updated:** 2026-10-11. Code state: `29f737c` (Milestone 3). This file was added by the following documentation commit, `docs: establish persistent Claude Code project context` (find it with `git log --oneline -3`).
+**Last updated:** 2026-10-11 (after the Milestone 4 quality review). Milestone 4 is committed on `feature/milestone-4-ai-investigation` as `feat: implement AI codebase investigation and grounded RAG chat` (the commit that added this text; find it with `git log --oneline -1` on the branch). It is **not merged**: `main` is unchanged at `0ff0777`.
 
 ## Verify this file in 30 seconds
 ```powershell
@@ -12,78 +12,107 @@ git log --oneline -5
 dir backend\migrations\versions
 .\.venv\Scripts\python -c "import sqlite3; print(sqlite3.connect('backend/data/codeatlas.db').execute('select version_num from alembic_version').fetchone())"
 ```
-Expected as of the date above: branch `main`, HEAD = the docs commit above (its parent is `29f737c`), migrations `0001`–`0004`, local dev DB at `0004_search_index`.
+Expected as of the date above:
+- Branch `feature/milestone-4-ai-investigation`: HEAD is the Milestone 4 commit, whose parent is `0ff0777` (= `main`); clean working tree.
+- Migrations `0001`–`0005`.
+- Local dev DB still at `0004_search_index`. `0005` has not been applied to it: run `alembic upgrade head` to use chat.
 
 ## Repository
 | Item | Value (2026-10-11) |
 | --- | --- |
-| Location | `C:\CodeAtlas_Milestone_0\codeatlas-m0` (virtualenv: `.venv` at the repository root; Python 3.14.6) |
-| Current branch | `main` |
-| `main` HEAD | `docs: establish persistent Claude Code project context` (documentation only) on top of `29f737c` "Milestone 3: implement embeddings and hybrid code retrieval" |
-| Other branches | `feature/milestone-3-retrieval` = `29f737c` (fast-forward merged into `main` on 2026-10-10); `feature/milestone-2-code-analysis` = `e9603a0` (merged) |
+| Location | `C:\CodeAtlas_Milestone_0\codeatlas-m0` (virtualenv `.venv` at the root; Python 3.14.6) |
+| Current branch | `feature/milestone-4-ai-investigation` (created from `main` at `0ff0777`) |
+| `main` HEAD | `0ff0777` docs: establish persistent Claude Code project context (on top of `29f737c` Milestone 3) |
 | Remote | none configured |
-| Alembic head | `0004_search_index` (chain `0001_initial` → `0002_project_files` → `0003_code_analysis` → `0004_search_index`) |
-| Local dev DB | `backend/data/codeatlas.db` at `0004_search_index` (upgraded by the user after the Milestone 3 merge); git-ignored |
-| Local data (git-ignored) | `backend/data/` holds `codeatlas.db`, `workspaces/`, `chroma/` and `models/` (fastembed cache, ~152 MB: `bge-small-en-v1.5` + `all-MiniLM-L6-v2` from the model comparison) |
+| Alembic head | `0005_conversations` (chain `0001` → `0002` → `0003` → `0004_search_index` → `0005_conversations`) |
+| Local dev DB | `backend/data/codeatlas.db` at `0004_search_index` (not upgraded; `0005` was tested up/down/up on a copy, with row counts unchanged) |
+| Local model | Ollama 0.40.2 with `qwen2.5:3b`, `qwen2.5:1.5b` and `qwen2.5-coder:7b` installed (not part of the repository) |
 
 ## Completed milestones
-- **M0 – foundation:** FastAPI, settings, SQLAlchemy/Alembic, Next.js shell, Docker.
-- **M1 – ingestion and browsing:** GitHub/ZIP import with archive security checks, language registry, manifest, file explorer, code viewer, statistics.
-- **M2 – code analysis:** Python `ast` + Tree-sitter (JS/JSX/TS/TSX) symbols; line-aligned chunking; analysis API and UI.
-- **M3 – retrieval:**
-  - Local embeddings: fastembed, `BAAI/bge-small-en-v1.5`, CPU.
-  - ChromaDB: one collection per project and model.
-  - Incremental, crash-recoverable indexing.
-  - Search: exact + FTS5 BM25 keyword search, semantic search, weighted-RRF hybrid; optional reranker.
-  - API: `POST /index`, `GET /index-status`, `POST /search`. Search workspace UI with navigation to the cited lines.
-  - Retrieval benchmark.
+- **M0–M3:** foundation, ingestion/browsing, code analysis, retrieval (see `docs/development-progress.md`).
+- **M4 – AI investigation and chat (committed on the feature branch, not merged):**
+  - Ollama provider plus a fake provider; `/api/llm/status`.
+  - Baseline RAG with token-budgeted, fenced evidence and validated citations.
+  - Bounded investigation with six read-only tools and native/deterministic planners.
+  - Persistent conversations (migration `0005`).
+  - SSE streaming with cancellation.
+  - AI Chat tab.
+  - Answer benchmark.
+  - Details: `README.md` → "AI chat", `docs/architecture.md` → Milestone 4, `docs/decisions.md` 45–56.
 
-Details: `docs/development-progress.md` (checklist), `docs/architecture.md`, `docs/decisions.md` (1–44).
+## Quality review: false relationship claims (2026-10-11)
+- **Failure:** the recorded benchmark answer (`py-api-products`, investigation) said "`create_product` also calls `save_product_image` [E5]". This is false; only `upload_product_image` calls it. The citation itself was valid.
+- **Root cause** (reproduced from the recorded data):
+  - the deterministic planner followed names imported by the module's import block as if they were calls, and fetched `save_product_image`;
+  - evidence blocks did not say why they were retrieved;
+  - the lexical support check flagged the sentence (0.667 unsupported) only as a metric.
+- **Fix:**
+  - `backend/app/services/rag/relations.py` statically verifies explicit "A calls / imports / returns B" claims with the existing `ast` / Tree-sitter parsers and symbol table. Verdicts are verified, inferred, unverified and unsupported. Text is annotated, never deleted.
+  - The planner weights imports at half of calls and records the reason in the evidence header.
+  - A prompt rule says an import or co-located code is not evidence of a call.
+  - Checks are stored in the run trace (`relationship_check`), shown in the activity panel, and reported as benchmark metrics (not pass criteria).
+- **Offline replay on all 32 recorded answers (no model run):** 4 explicit claims found. The false claim is now `unsupported` and labelled "**Unsupported claim:** … (Not supported by the source: no call to `save_product_image` appears in `create_product` (app/api/product_routes.py:16-22).)". The 3 true claims are `verified` and unchanged. The other 28 answers are unchanged.
+- **Browser check (isolated 8001/3001, replayed answer in the scratch DB):** the bold label, the note and the activity entry render.
+- **Not re-run:** the 16-question real-model benchmark (not authorized). The recorded scores above are from before this change.
+- **Limits:**
+  - Only explicit sentences with code-name subjects are checked.
+  - Only direct calls in A's own definition count.
+  - Dynamic dispatch, callbacks, `getattr`/computed calls, unknown symbols and languages without a parser are reported as inferred or unverified, never as false.
+  - Claims about behaviour or data flow are not verified.
 
-## Active work
-- **Committed to `main` (2026-10-11, `docs: establish persistent Claude Code project context`):**
-  - Documentation/handoff system: `CLAUDE.md` (new), `docs/CURRENT_STATE.md` (new); consistency fixes in `README.md`, `docs/architecture.md` and `docs/development-progress.md`; `.gitignore` adds `notes/` and `.obsidian/`.
-  - No source code changes.
-- `frontend/next-env.d.ts` can show as modified after `next dev`. It is generated by Next (dev vs. build type paths) and is not a real change; `npm run build` restores the committed version.
-- **Milestone 4 (source-grounded, LLM-generated answers) has not been started.** No branch, no code.
-
-## Verified test results
-Run on `main` at `29f737c`, 2026-10-11:
-- Backend: `pytest -q`: 224 passed (2 warnings: Starlette `httpx` testclient deprecation, ChromaDB `asyncio.iscoroutinefunction` deprecation), ~2.5 min
+## Verified test results (2026-10-11, working tree of the feature branch)
+- Backend: `pytest -q`: **308 passed** (224 existing + 84 new, including 12 relationship tests), 2 known deprecation warnings, 4 min 38 s; re-run on the final tree just before the commit: 308 passed (4 min 12 s), Ruff clean, `tsc` passed, `next build` compiled successfully
+- Earlier in the day, before the quality review: 296 passed
 - Ruff: `ruff check app tests`: all checks passed
-- Frontend: `npm run lint` (tsc): passed (exit 0); `npm run build`: compiled successfully (Next.js 16.4, Node 24.16.0)
+- Frontend: `npm run lint` (tsc) passed; `npm run build` compiled successfully (built with the default API URL)
+- Baseline before the work: 224 passed, tsc and build passed on `main` at `0ff0777`
 
-Retrieval benchmark (recorded 2026-10-10, default model, 41 queries; files in `backend/benchmarks/results/`):
+## Live verification (isolated storage, `qwen2.5:3b`, CPU)
+Setup: backend on port 8001 with its own DB, workspaces and Chroma under the session scratchpad; production frontend on port 3001. The user's servers on 8000/3000 were not touched.
+- **Repositories:** `shopapi` (Python), `taskboard` (TypeScript) and `billing` (prompt-injection comments, strings and Markdown), all indexed with `bge-small`.
+- **Model speed:** `qwen2.5-coder:7b` processes prompts at 4.9 tokens/s and generates at 2.0 tokens/s. An 8K-context baseline answer timed out after 300 s and was stored as failed. `qwen2.5:3b` processes 16.5 tokens/s and generates 3.7 tokens/s.
+- **Answers seen:**
+  - Baseline (JWT create/validate): 74 s, 4 verified citations, claims checked against the source.
+  - Investigation (login flow): 157 s, 3 tool calls.
+  - Follow-up ("where is that token validated?"): correct (`decode_access_token`).
+  - Unanswerable (push notifications): an honest refusal.
+  - Injection repository: answered correctly, ignored the injected instructions.
+  - TypeScript task-creation flow: correct, but only the route was cited.
+- **Browser (3001):** the model status shows; saved conversations reopen; an investigation streamed real progress (search → planning → `find_symbol` ×4 → answer, 147.6 s, 2 verified citations); clicking a citation opened `app/auth/security.py` with lines 33–44 highlighted; Stop produced a `cancelled` row with empty content and no citations.
+- **Isolation and availability (live API):**
+  - Another project's conversation returns 404.
+  - Another project's file in `file_paths` returns 422, a traversal path returns 422, and a cross-project file read returns 404.
+  - With Ollama unreachable, status explains how to start it, chat returns 503 before streaming, and nothing is stored.
+- **Found and fixed during live testing:**
+  - The 3B model cited paths instead of IDs (prompt strengthened).
+  - The native planner made redundant searches (hand-over to the deterministic planner).
+  - Cancellation took 59 s during prompt processing; it now takes effect at once (3.0 s at the moment of cancel).
+  - A UI race showed a stopped answer as "failed".
+  - Invalid selected files were stored before being rejected.
 
-| Configuration | Recall@5 | MRR |
-| --- | --- | --- |
-| keyword | 0.750 | 0.646 |
-| semantic | 0.927 | 0.933 |
-| hybrid (default) | 0.878 | 0.888 |
-| hybrid + rerank | 0.866 | 0.837 |
+## Answer benchmark (`backend/benchmarks/results/2026-10-11_answers_ollama-qwen2-5-3b.*`)
+| Mode | Pass | Citation recall | Mention recall | Citation validity | Unsupported (lexical) | Refusals | Forbidden | Tools/q | LLM req/q | Median s |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| baseline | 0.688 | 0.762 | 0.893 | 1.0 | 0.40 | 1.0 | 0 | 0 | 1 | 45.4 |
+| investigation | 0.938 | 1.0 | 0.964 | 1.0 | 0.367 | 1.0 | 0 | 3.5 | 2.31 | 75.1 |
 
-Indexing speed on this machine (Intel Skylake, 8 logical CPUs, CPU only): about 2–5 chunks/s; re-indexing unchanged code takes under 1 s.
+16 questions, one run per mode, total 2,146 s. Deterministic checks only, so these are proxies.
 
 ## Unresolved issues and known limitations
-1. **Hybrid search trails semantic-only on the benchmark** (MRR 0.888 vs 0.933; held-out repository 0.78 vs 0.92). Cause: RRF demotes chunks found by only one retriever. Hybrid stays the default by decision (decisions 39–40). The trade-off is documented in the README.
-2. **Ranking noise on real repositories:** generated files (`*.gen.ts`), tests and Markdown docs often outrank implementations for broad questions. There is no path-based weighting yet.
-3. **Indexing is synchronous and CPU-bound** (tens of minutes for ~10k chunks). It assumes a single API process: startup recovery would wrongly fail another worker's live run, and the concurrency guard is in-process only.
-4. **Symbol gaps from M2:** CommonJS `module.exports = class …` and object-literal APIs produce no symbols, so exact-name search can't find them.
-5. Embeddings cover only the first 2,000 characters of a chunk; keyword search covers all of it.
-6. The benchmark is small (41 queries, two purpose-written repositories). Use it as a regression signal only.
-7. The Docker image's SQLite version is unverified (Docker daemon was not running). Migration `0004` falls back to a regular FTS5 table on SQLite < 3.43; that path is unit-tested.
-8. No authentication; public GitHub only (see README "Known limitations").
+1. **Not merged:** Milestone 4 is committed on the feature branch only. Merging into `main` needs the user's approval. Migration `0005` is not applied to the dev DB.
+2. **Hosted providers not enabled:** Anthropic and OpenAI need their official SDKs, which need approval to add.
+3. **Claims are only partly verified.** Citation validity is checked. Explicit call/import/return claims are now verified statically (see the quality review above). Other claims (what code does, data flow) rely on the lexical support estimate only, which was about 0.4 unsupported in the recorded run. Relationship sentences with pronoun subjects ("it calls …") are not checked.
+4. **CPU latency:** 40–150 s per answer with the 3B model; the 7B model is impractical on this machine without a GPU.
+5. **Retrieval issues carry over from M3:** hybrid trails semantic on the retrieval benchmark, there is no path weighting, and there are symbol gaps for CommonJS. Synchronous, single-process indexing and chat.
+6. **Small benchmarks:** the answer benchmark is small (16 questions) and was run once per mode.
 
 ## Exact next steps
-1. **Before Milestone 4, decide with the user** (these are product decisions, not defaults to assume):
-   - which LLM provider/model, and whether code may leave the machine (local model vs. API; cost; explicit disclosure required by `CLAUDE.md`);
-   - answer format and citation rules: every claim cites `path:start-end` from retrieved chunks; refusal when evidence is missing;
-   - prompt-injection handling (repository text is untrusted data);
-   - which retrieval mode feeds answers (semantic vs. hybrid, given issue 1).
-2. Start M4 on a new branch `feature/milestone-4-answers` from `main`, after re-running the full checks above. Plan the work as: retrieval-to-context assembly with token budgets, provider interface plus fake provider for tests, answer API with citations, UI, evaluation (answer groundedness against the existing benchmark labels).
-3. Optional retrieval improvements, each measured with the benchmark before and after: path-aware down-weighting of tests/docs/generated files; a fusion variant that doesn't punish single-retriever hits; a larger labelled query set.
+1. Optionally re-run the 16-question real-model benchmark (about 36 min on this CPU; needs the user's go-ahead) to measure the relationship check and the planner change on fresh answers.
+2. The user decides whether to merge `feature/milestone-4-ai-investigation` into `main`. Then apply `0005` to the dev DB: `cd backend; ..\.venv\Scripts\alembic upgrade head` (back up `data\codeatlas.db` first).
+3. Decide on hosted providers (SDK dependencies, off-machine disclosure).
+4. Quality work, measured with the answer benchmark: a claim-level support check (and/or a documented LLM judge), a larger and repeated benchmark, and path-aware retrieval weighting.
 
 ## Where things are recorded
 - Engineering facts and rationale: `docs/architecture.md`, `docs/decisions.md`, `docs/development-progress.md`, `README.md`.
 - This handoff: `docs/CURRENT_STATE.md`. Session rules: `CLAUDE.md`.
-- Personal research notes and product ideas: **not in this repository's docs.** Keep them in an external Obsidian vault or the git-ignored `notes/` folder.
+- Personal research notes and product ideas: **not in this repository's docs.**

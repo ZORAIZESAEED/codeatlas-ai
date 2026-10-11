@@ -32,6 +32,7 @@ from app.schemas import (
 )
 from app.services.analysis import delete_analysis, run_analysis
 from app.services.chunking import split_lines
+from app.services.conversations import delete_project_conversations
 from app.services.github import download_repository, parse_github_url
 from app.services.indexing.indexer import drop_project_vectors
 from app.services.indexing.manifest import delete_project_index
@@ -126,6 +127,7 @@ def delete_project(
 ) -> Response:
     project = _get_project(db, project_id)
     was_indexed = db.get(SearchIndex, project.id) is not None
+    delete_project_conversations(db, project.id)
     delete_project_index(db, project.id)
     delete_analysis(db, project.id)
     db.execute(delete(ProjectFile).where(ProjectFile.project_id == project.id))
