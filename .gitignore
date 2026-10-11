@@ -10,3 +10,6 @@ frontend/.next/
 .DS_Store
 .ruff_cache/
 *.tsbuildinfo
+# Personal research notes / Obsidian vault (not project documentation)
+notes/
+.obsidian/

@@ -1,5 +1,7 @@
 # Development progress
 
+Milestone checklist (history). For the current branch, commit, test results, open issues and next steps, see [`CURRENT_STATE.md`](CURRENT_STATE.md).
+
 ## Milestone 0
 - [x] FastAPI app with `/health`, `/ready`, and OpenAPI documentation
 - [x] Pydantic environment configuration
@@ -20,7 +22,7 @@
 - [x] Developer dashboard: project sidebar, GitHub/ZIP import, overview statistics, collapsible file tree, syntax-highlighted code viewer with line numbers, responsive layout
 - [x] Backend tests (65) with mocked GitHub HTTP; frontend type check and production build
 
-## Milestone 2 — Code analysis (branch `feature/milestone-2-code-analysis`)
+## Milestone 2 — Code analysis (merged to `main` at `e9603a0`)
 - [x] Additive migration `0003_code_analysis` (`code_symbols`, `code_chunks`, analysis columns); existing projects preserved as `pending`
 - [x] Python structural parsing with the standard-library `ast` (classes, functions, methods, decorators, docstrings)
 - [x] Tree-sitter parsing for JavaScript, JSX, TypeScript and TSX (functions, arrow-function constants, classes, methods, interfaces, types, enums, namespaces, JSDoc)
@@ -31,8 +33,8 @@
 - [x] Tests: parsers, chunking invariants, analysis API, migration of a pre-existing project
 - [x] Technical review: `\n`-only line model (form feed / U+2028 / U+0085 fix), BOM-safe parsing, per-file failure isolation, structural parsing size limits, safe handling of projects deleted mid-analysis, regression tests (136 backend tests), headless-browser check of the Symbols/Chunks UI
 
-## Milestone 3 — Retrieval (branch `feature/milestone-3-retrieval`)
-- [x] Milestone 2 fast-forward merged into `main` (`e9603a0`) after re-running its tests; work continues on `feature/milestone-3-retrieval`
+## Milestone 3 — Retrieval (merged to `main` at `29f737c`)
+- [x] Milestone 2 fast-forward merged into `main` (`e9603a0`) after re-running its tests; Milestone 3 developed on `feature/milestone-3-retrieval` and fast-forward merged into `main` (`29f737c`)
 - [x] Additive migration `0004_search_index` (`search_indexes`, `index_entries`, contentless FTS5 `chunk_fts`, `projects.analysis_revision`), tested up/down/up on a copy of the development database
 - [x] Embedding provider interface; local fastembed provider (lazy, CPU, configurable model/batch/threads/query prefix); deterministic fake provider for tests
 - [x] ChromaDB persistence: one collection per project and model, deterministic content-addressed record IDs, full chunk metadata, batched writes

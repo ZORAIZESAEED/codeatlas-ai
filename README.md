@@ -1,4 +1,4 @@
-# CodeAtlas AI — Milestone 3 (in progress on `feature/milestone-3-retrieval`)
+# CodeAtlas AI — Milestones 1–3 (on `main`)
 
 A source-grounded codebase intelligence platform.
 - **Milestone 1 — repository ingestion and browsing:** import a public GitHub repository or a ZIP, explore its file tree, read syntax-highlighted source, and view repository statistics.
@@ -222,4 +222,4 @@ Copy `.env.example` into `backend/.env` if changing defaults. The web app uses `
   - Hybrid fusion currently trails semantic-only retrieval on the benchmark (MRR 0.888 vs 0.933). RRF demotes chunks found by only one retriever. The lexical reranker did not help and is off by default. No cross-encoder reranker yet.
   - The benchmark is small (41 queries over two purpose-written repositories). Treat its numbers as regression signals, not general quality claims.
 
-See `docs/` for the architecture, progress and decision log.
+See `docs/` for the architecture, progress and decision log. `docs/CURRENT_STATE.md` is the development handoff (current commit, test results, open issues, next steps); `CLAUDE.md` holds the rules for AI coding sessions.

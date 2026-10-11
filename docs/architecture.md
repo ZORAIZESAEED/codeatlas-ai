@@ -4,12 +4,12 @@
 - **Frontend:** Next.js App Router. `src/app/page.tsx` renders a client-side dashboard (`src/components/`):
   - `Dashboard` — top bar with API status, project sidebar, main workspace.
   - `ImportPanel` — GitHub URL form and ZIP upload (drag & drop) with loading/error states.
-  - `ProjectWorkspace` — project header, delete action, Overview/Files tabs, statistics, code-analysis card (status, symbols by kind, files by parser, parse issues, Analyze/Re-analyze).
+  - `ProjectWorkspace` — project header, delete action, Overview/Files/Search tabs, statistics, code-analysis card (status, symbols by kind, files by parser, parse issues, Analyze/Re-analyze), search-index card (`IndexCard`, see Milestone 3).
   - `FileExplorer` — collapsible tree built from the manifest, filter box, file loading.
   - `OutlinePanel` — per-file Symbols/Chunks lists; selecting one highlights and scrolls to its line range in the viewer.
   - `CodeViewer` — line-numbered, syntax-highlighted source (`highlight.js` core; `src/lib/highlight.ts` maps backend language names to grammars, unmapped types render as plain text).
   - `src/lib/api.ts` — typed fetch client for the backend; surfaces backend `detail` messages.
-- **API:** FastAPI (`app/main.py` factory). Routers: `app/api/health.py` (`/health`, `/ready`) and `app/api/projects.py` (`/api/projects/...`). Pydantic schemas live in `app/schemas.py`. `IngestionError` is mapped to JSON `{"detail"}` responses by an exception handler.
+- **API:** FastAPI (`app/main.py` factory). Routers: `app/api/health.py` (`/health`, `/ready`), `app/api/projects.py` (`/api/projects/...`) and `app/api/search.py` (index and search endpoints, Milestone 3). Pydantic schemas live in `app/schemas.py`. `IngestionError` is mapped to JSON `{"detail"}` responses by an exception handler.
 - **Services:**
   - `app/services/languages.py` — `LanguageRegistry` of `LanguageSpec`s (exact file names → file-name globs → extensions, case-insensitive). `DEFAULT_REGISTRY` is the single source of truth for which file types are indexed.
   - `app/services/ingestion.py` — safe ZIP extraction, exclusion rules (directories, generated files, credentials), manifest generation, transactional import with cleanup, sandboxed file reads, workspace deletion. `extract_archive` accepts an optional registry.
@@ -37,10 +37,10 @@
 
 ## Read & delete
 - File content is served only for paths present in the manifest, then re-checked to resolve inside the project workspace.
-- Delete removes symbols, chunks, manifest rows and the project in one transaction, then removes only `<workspace>/<project_id>` (the ID must be a UUID and its directory a direct child of the workspace root).
+- Delete removes search-index rows (manifest + FTS + state), symbols, chunks, manifest rows and the project in one transaction, then removes only `<workspace>/<project_id>` and finally the project's ChromaDB collections (the ID must be a UUID and its directory a direct child of the workspace root).
 
 ## Lifecycle
-The engine opens at startup and is disposed at shutdown. Migrations run separately (`alembic upgrade head`); Docker runs them before launching Uvicorn. CORS allows the configured frontend origin with `GET`, `POST`, `DELETE`.
+The engine opens at startup and is disposed at shutdown. At startup, any search index left in `indexing` by a stopped server is marked `failed` (interrupted); this assumes a single API process. Migrations run separately (`alembic upgrade head`); Docker runs them before launching Uvicorn. CORS allows the configured frontend origin with `GET`, `POST`, `DELETE`.
 
 ## Milestone 3 — retrieval
 ### Components
